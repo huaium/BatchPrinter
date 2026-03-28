@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import SwiftUI
 
@@ -29,8 +30,14 @@ final class MainViewModel: ObservableObject {
     private let printer = WordPrinter()
     private var printTask: Task<Void, Never>?
     private var shouldCancel = false
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
+        logStore.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
         refreshPrinters()
     }
 
