@@ -16,6 +16,7 @@
 		A007 /* LogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B007 /* LogStore.swift */; };
 		A008 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B008 /* L10n.swift */; };
 		A009 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B011 /* Localizable.xcstrings */; };
+		A010 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012 /* HelpView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		B007 /* LogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
 		B008 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		B011 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		B012 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 			children = (
 				B001 /* BatchPrinterApp.swift */,
 				B002 /* ContentView.swift */,
+				B012 /* HelpView.swift */,
 				D002 /* Models */,
 				D003 /* Services */,
 				D004 /* ViewModels */,
@@ -184,6 +187,7 @@
 				A006 /* MainViewModel.swift in Sources */,
 				A007 /* LogStore.swift in Sources */,
 				A008 /* L10n.swift in Sources */,
+				A010 /* HelpView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
