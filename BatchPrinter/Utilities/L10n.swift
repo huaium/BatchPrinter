@@ -43,10 +43,35 @@ enum L10n {
     }
 
     static func tr(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
+        localizedString(for: key, languageRawValue: selectedLanguage.rawValue)
     }
 
     static func tr(_ key: String, _ args: CVarArg...) -> String {
         String(format: tr(key), locale: locale, arguments: args)
+    }
+
+    static func tr(_ key: String, languageRawValue: String) -> String {
+        let value = localizedString(for: key, languageRawValue: languageRawValue)
+        return value == key ? tr(key) : value
+    }
+
+    static func tr(_ key: String, languageRawValue: String, _ args: CVarArg...) -> String {
+        String(format: tr(key, languageRawValue: languageRawValue), locale: locale(for: languageRawValue), arguments: args)
+    }
+
+    private static func localizedString(for key: String, languageRawValue: String) -> String {
+        let bundle = localizationBundle(for: languageRawValue)
+        return bundle.localizedString(forKey: key, value: key, table: nil)
+    }
+
+    private static func localizationBundle(for languageRawValue: String) -> Bundle {
+        guard let language = Language(rawValue: languageRawValue), language != .system else {
+            return .main
+        }
+        guard let path = Bundle.main.path(forResource: language.rawValue, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return .main
+        }
+        return bundle
     }
 }

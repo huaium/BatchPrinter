@@ -49,19 +49,24 @@ final class MainViewModel: ObservableObject {
     }
 
     var summaryText: String {
+        let counts = summaryCounts
+        return L10n.tr(
+            "summary.format",
+            counts.total,
+            counts.printed,
+            counts.failed,
+            counts.skipped,
+            counts.cancelled
+        )
+    }
+
+    var summaryCounts: (total: Int, printed: Int, failed: Int, skipped: Int, cancelled: Int) {
         let total = jobs.count
         let printed = jobs.filter { $0.status == .success }.count
         let failed = jobs.filter { $0.status == .failed }.count
         let skipped = jobs.filter { $0.status == .skipped }.count
         let cancelled = jobs.filter { $0.status == .cancelled }.count
-        return L10n.tr(
-            "summary.format",
-            total,
-            printed,
-            failed,
-            skipped,
-            cancelled
-        )
+        return (total, printed, failed, skipped, cancelled)
     }
 
     func chooseFolder() {
@@ -392,7 +397,10 @@ final class MainViewModel: ObservableObject {
         shouldCancel = false
         isCancelling = false
         isPrinting = true
-        logStore.add(L10n.tr("log.using_printer", selectedPrinterName))
+        let selectedPrinterLabel = selectedPrinterName == WordPrinter.virtualPDFPrinterName
+            ? L10n.tr("printer.virtual_pdf")
+            : selectedPrinterName
+        logStore.add(L10n.tr("log.using_printer", selectedPrinterLabel))
         logStore.add(L10n.tr("log.starting_print_run", targetIDs.count))
 
         printTask = Task { [weak self] in

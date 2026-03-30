@@ -2008,6 +2008,23 @@
         }
       }
     },
+    "printer.virtual_pdf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Print to PDF"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打印为 PDF"
+          }
+        }
+      }
+    },
     "status.cancelled" : {
       "extractionState" : "stale",
       "localizations" : {

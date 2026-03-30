@@ -18,6 +18,42 @@ struct ContentView: View {
         viewModel.filteredJobs.sorted(using: tableSortOrder)
     }
 
+    private func localized(_ key: String) -> String {
+        L10n.tr(key, languageRawValue: selectedLanguage)
+    }
+
+    private func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
+        String(
+            format: localized(key),
+            locale: L10n.locale(for: selectedLanguage),
+            arguments: args
+        )
+    }
+
+    private var preprocessButtonTitle: String {
+        viewModel.isPreprocessing ? localized("controls.preprocessing") : localized("controls.preprocess")
+    }
+
+    private var printButtonTitle: String {
+        viewModel.selectedJobIDs.isEmpty ? localized("controls.print_all") : localized("controls.print_selected")
+    }
+
+    private var cancelButtonTitle: String {
+        viewModel.isCancelling ? localized("controls.cancelling") : localized("common.cancel")
+    }
+
+    private var summaryText: String {
+        let counts = viewModel.summaryCounts
+        return localizedFormat(
+            "summary.format",
+            counts.total,
+            counts.printed,
+            counts.failed,
+            counts.skipped,
+            counts.cancelled
+        )
+    }
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -77,7 +113,7 @@ struct ContentView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("header.folder")
                     .fontWeight(.semibold)
-                Text(viewModel.selectedFolderURL?.path ?? L10n.tr("header.no_folder_selected"))
+                Text(viewModel.selectedFolderURL?.path ?? localized("header.no_folder_selected"))
                     .lineLimit(2)
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
@@ -98,8 +134,11 @@ struct ContentView: View {
                 Button("controls.refresh_files") { viewModel.scanFiles() }
                     .disabled(viewModel.isPrinting || viewModel.isPreprocessing)
                 HStack(spacing: 6) {
-                    Button(viewModel.isPreprocessing ? L10n.tr("controls.preprocessing") : L10n.tr("controls.preprocess")) {
+                    Button {
                         showPreprocessOutputChoice = true
+                    }
+                    label: {
+                        Text(preprocessButtonTitle)
                     }
                     .disabled(viewModel.jobs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
 
@@ -142,7 +181,11 @@ struct ContentView: View {
                         Text("controls.no_printer").tag("")
                     } else {
                         ForEach(viewModel.availablePrinters, id: \.self) { printer in
-                            Text(printer).tag(printer)
+                            if printer == WordPrinter.virtualPDFPrinterName {
+                                Text(localized("printer.virtual_pdf")).tag(printer)
+                            } else {
+                                Text(printer).tag(printer)
+                            }
                         }
                     }
                 }
@@ -165,20 +208,26 @@ struct ContentView: View {
                 .frame(width: 150)
 
                 Spacer()
-                Text(viewModel.summaryText)
+                Text(summaryText)
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 12) {
-                Button(viewModel.selectedJobIDs.isEmpty ? L10n.tr("controls.print_all") : L10n.tr("controls.print_selected")) {
+                Button {
                     viewModel.startPrintingSelectedOrAll()
+                }
+                label: {
+                    Text(printButtonTitle)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.jobs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
 
-                Button(viewModel.isCancelling ? L10n.tr("controls.cancelling") : L10n.tr("common.cancel")) {
+                Button {
                     viewModel.cancelPrinting()
+                }
+                label: {
+                    Text(cancelButtonTitle)
                 }
                 .disabled(!viewModel.isPrinting)
 
@@ -218,7 +267,7 @@ struct ContentView: View {
                 Text("controls.preprocess_folder")
                     .font(.caption)
                     .fontWeight(.semibold)
-                Text(viewModel.preprocessOutputFolderURL?.path ?? L10n.tr("controls.not_selected"))
+                Text(viewModel.preprocessOutputFolderURL?.path ?? localized("controls.not_selected"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -227,6 +276,7 @@ struct ContentView: View {
         }
         .padding(14)
         .glassCard(cornerRadius: outerCornerRadius)
+        .id(selectedLanguage)
     }
 
     private func tableSection(minHeight: CGFloat) -> some View {
