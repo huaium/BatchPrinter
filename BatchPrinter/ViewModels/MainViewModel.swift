@@ -54,7 +54,14 @@ final class MainViewModel: ObservableObject {
         let failed = jobs.filter { $0.status == .failed }.count
         let skipped = jobs.filter { $0.status == .skipped }.count
         let cancelled = jobs.filter { $0.status == .cancelled }.count
-        return "Total: \(total)  Printed: \(printed)  Failed: \(failed)  Skipped: \(skipped)  Cancelled: \(cancelled)"
+        return L10n.tr(
+            "summary.format",
+            total,
+            printed,
+            failed,
+            skipped,
+            cancelled
+        )
     }
 
     func chooseFolder() {
@@ -62,31 +69,32 @@ final class MainViewModel: ObservableObject {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        panel.message = "Select a folder that contains Word or PDF files."
+        panel.prompt = L10n.tr("panel.choose")
+        panel.message = L10n.tr("panel.choose_folder.message")
 
         if panel.runModal() == .OK, let url = panel.url {
             selectedFolderURL = url
-            logStore.add("Selected folder: \(url.path)")
+            logStore.add(L10n.tr("log.selected_folder", url.path))
             if !isPrinting && !isPreprocessing {
                 scanFiles()
             } else {
-                logStore.add("Folder updated. Refresh files after current task finishes.")
+                logStore.add(L10n.tr("log.folder_updated_refresh_later"))
             }
         }
     }
 
     func scanFiles() {
         guard !isPrinting && !isPreprocessing else {
-            lastErrorMessage = "Cannot refresh files while printing or preprocessing is running."
+            lastErrorMessage = L10n.tr("error.cannot_refresh_while_busy")
             return
         }
         guard let selectedFolderURL else {
-            lastErrorMessage = "Select a folder first."
+            lastErrorMessage = L10n.tr("error.select_folder_first")
             return
         }
 
-        logStore.add("Scanning files (scan subfolders: \(recursiveScan ? "On" : "Off")).")
+        let recursiveState = recursiveScan ? L10n.tr("common.on") : L10n.tr("common.off")
+        logStore.add(L10n.tr("log.scanning_files", recursiveState))
 
         do {
             let urls = try scanner.scan(folderURL: selectedFolderURL, recursive: recursiveScan)
@@ -99,24 +107,24 @@ final class MainViewModel: ObservableObject {
                 }
             }
             selectedJobIDs.removeAll()
-            logStore.add("Scanned \(urls.count) printable document(s) (.doc/.docx/.pdf).")
+            logStore.add(L10n.tr("log.scanned_printable_docs", urls.count))
             if urls.isEmpty {
-                logStore.add("No matching files were found. Hidden files and Word lock files (~$...) are skipped.")
+                logStore.add(L10n.tr("log.no_matching_files"))
             }
         } catch {
             lastErrorMessage = error.localizedDescription
-            logStore.add("Scan failed: \(error.localizedDescription)")
+            logStore.add(L10n.tr("log.scan_failed", error.localizedDescription))
         }
     }
 
     func clearJobs() {
         guard !isPrinting && !isPreprocessing else {
-            lastErrorMessage = "Cannot clear while printing or preprocessing is running."
+            lastErrorMessage = L10n.tr("error.cannot_clear_while_busy")
             return
         }
         jobs.removeAll()
         selectedJobIDs.removeAll()
-        logStore.add("Cleared job list.")
+        logStore.add(L10n.tr("log.cleared_job_list"))
     }
 
     func choosePreprocessOutputFolder() {
@@ -124,12 +132,12 @@ final class MainViewModel: ObservableObject {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        panel.message = "Select output folder for preprocessed PDF files."
+        panel.prompt = L10n.tr("panel.choose")
+        panel.message = L10n.tr("panel.preprocess_output.message")
 
         if panel.runModal() == .OK, let url = panel.url {
             preprocessOutputFolderURL = url
-            logStore.add("Preprocess output folder: \(url.path)")
+            logStore.add(L10n.tr("log.preprocess_output_folder", url.path))
         }
     }
 
@@ -141,12 +149,12 @@ final class MainViewModel: ObservableObject {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        panel.message = "Select output folder for Print to PDF files."
+        panel.prompt = L10n.tr("panel.choose")
+        panel.message = L10n.tr("panel.print_pdf_output.message")
 
         if panel.runModal() == .OK, let url = panel.url {
             printPDFOutputFolderURL = url
-            logStore.add("Print-to-PDF output folder: \(url.path)")
+            logStore.add(L10n.tr("log.print_pdf_output_folder", url.path))
         }
     }
 
@@ -154,12 +162,12 @@ final class MainViewModel: ObservableObject {
         guard !isPrinting else { return }
         guard !isPreprocessing else { return }
         guard !jobs.isEmpty else {
-            lastErrorMessage = "No jobs to preprocess."
+            lastErrorMessage = L10n.tr("error.no_jobs_to_preprocess")
             return
         }
         let hasWordInputs = jobs.contains { !$0.isPDFSource }
         guard !hasWordInputs || printer.isWordInstalled() else {
-            lastErrorMessage = "Microsoft Word was not found. Install Word first."
+            lastErrorMessage = L10n.tr("error.word_not_found_install_first")
             return
         }
         let outputFolder: URL?
@@ -175,19 +183,19 @@ final class MainViewModel: ObservableObject {
                         attributes: nil
                     )
                 } catch {
-                    lastErrorMessage = "Unable to prepare temporary folder: \(error.localizedDescription)"
-                    logStore.add("Preprocess failed to prepare temporary folder: \(error.localizedDescription)")
+                    lastErrorMessage = L10n.tr("error.unable_prepare_temp_folder", error.localizedDescription)
+                    logStore.add(L10n.tr("log.preprocess_prepare_temp_failed", error.localizedDescription))
                     return
                 }
                 outputFolder = tempFolder
-                logStore.add("Using temporary preprocess folder: \(tempFolder.path)")
+                logStore.add(L10n.tr("log.using_temp_preprocess_folder", tempFolder.path))
 
             case .userSelected:
                 if preprocessOutputFolderURL == nil {
                     choosePreprocessOutputFolder()
                 }
                 guard let selectedFolder = preprocessOutputFolderURL else {
-                    lastErrorMessage = "Select a preprocess output folder first."
+                    lastErrorMessage = L10n.tr("error.select_preprocess_output_first")
                     return
                 }
                 outputFolder = selectedFolder
@@ -201,13 +209,13 @@ final class MainViewModel: ObservableObject {
                 try printer.requestAutomationAuthorization()
             } catch {
                 lastErrorMessage = error.localizedDescription
-                logStore.add("Preprocess failed to start: \(error.localizedDescription)")
+                logStore.add(L10n.tr("log.preprocess_start_failed", error.localizedDescription))
                 return
             }
         }
 
         isPreprocessing = true
-        logStore.add("Preprocessing \(jobs.count) file(s) to PDF...")
+        logStore.add(L10n.tr("log.preprocessing_files", jobs.count))
 
         Task { [weak self] in
             guard let self else { return }
@@ -219,11 +227,11 @@ final class MainViewModel: ObservableObject {
                         let totalPages = try printer.pageCountForPDF(at: sourceURL)
                         jobs[index].preprocessedPDFURL = sourceURL
                         jobs[index].totalPages = totalPages
-                        logStore.add("Preprocess skipped (PDF source): \(sourceURL.lastPathComponent) (\(totalPages) pages)")
+                        logStore.add(L10n.tr("log.preprocess_skipped_pdf_source", sourceURL.lastPathComponent, totalPages))
                     } catch {
                         jobs[index].preprocessedPDFURL = sourceURL
                         jobs[index].totalPages = nil
-                        logStore.add("Page count unavailable for source PDF: \(sourceURL.lastPathComponent)")
+                        logStore.add(L10n.tr("log.page_count_unavailable_source_pdf", sourceURL.lastPathComponent))
                     }
                     continue
                 }
@@ -231,7 +239,7 @@ final class MainViewModel: ObservableObject {
                 guard let outputFolder else {
                     jobs[index].preprocessedPDFURL = nil
                     jobs[index].totalPages = nil
-                    logStore.add("Preprocess failed: missing output folder for \(sourceURL.lastPathComponent)")
+                    logStore.add(L10n.tr("log.preprocess_missing_output_folder", sourceURL.lastPathComponent))
                     continue
                 }
 
@@ -248,15 +256,22 @@ final class MainViewModel: ObservableObject {
                     let totalPages = try printer.pageCountForPDF(at: outputURL)
                     jobs[index].preprocessedPDFURL = outputURL
                     jobs[index].totalPages = totalPages
-                    logStore.add("Preprocessed: \(sourceURL.lastPathComponent) -> \(outputURL.lastPathComponent) (\(totalPages) pages)")
+                    logStore.add(
+                        L10n.tr(
+                            "log.preprocessed_success",
+                            sourceURL.lastPathComponent,
+                            outputURL.lastPathComponent,
+                            totalPages
+                        )
+                    )
                 } catch {
                     jobs[index].preprocessedPDFURL = nil
                     jobs[index].totalPages = nil
-                    logStore.add("Preprocess failed: \(sourceURL.lastPathComponent) — \(error.localizedDescription)")
+                    logStore.add(L10n.tr("log.preprocess_failed", sourceURL.lastPathComponent, error.localizedDescription))
                 }
             }
             isPreprocessing = false
-            logStore.add("Preprocess finished.")
+            logStore.add(L10n.tr("log.preprocess_finished"))
         }
     }
 
@@ -266,7 +281,7 @@ final class MainViewModel: ObservableObject {
 
         if names.isEmpty {
             selectedPrinterName = ""
-            logStore.add("No printer found on this Mac.")
+            logStore.add(L10n.tr("log.no_printer_found"))
             return
         }
 
@@ -308,21 +323,21 @@ final class MainViewModel: ObservableObject {
     func startPrintingSelectedOrAll() {
         guard !isPrinting else { return }
         guard !isPreprocessing else {
-            lastErrorMessage = "Preprocess is still running. Wait for it to finish before printing."
+            lastErrorMessage = L10n.tr("error.preprocess_still_running")
             return
         }
         if availablePrinters.isEmpty {
             refreshPrinters()
         }
         guard !selectedPrinterName.isEmpty else {
-            lastErrorMessage = "No printer selected. Add/select a printer first."
+            lastErrorMessage = L10n.tr("error.no_printer_selected")
             return
         }
         let exportAsPDF = selectedPrinterName == WordPrinter.virtualPDFPrinterName
 
         let targetIDs = selectedJobIDs.isEmpty ? Set(jobs.map(\.id)) : selectedJobIDs
         guard !targetIDs.isEmpty else {
-            lastErrorMessage = "No jobs selected."
+            lastErrorMessage = L10n.tr("error.no_jobs_selected")
             return
         }
 
@@ -336,10 +351,10 @@ final class MainViewModel: ObservableObject {
                 .map(\.fileName)
 
             if !missing.isEmpty {
-                lastErrorMessage = "Preprocess required before printing to a physical printer."
-                logStore.add("Cannot print: preprocess missing for \(missing.count) file(s).")
+                lastErrorMessage = L10n.tr("error.preprocess_required_physical_printer")
+                logStore.add(L10n.tr("log.cannot_print_preprocess_missing_count", missing.count))
                 for fileName in missing {
-                    logStore.add("Preprocess required: \(fileName)")
+                    logStore.add(L10n.tr("log.preprocess_required_file", fileName))
                 }
                 return
             }
@@ -355,20 +370,20 @@ final class MainViewModel: ObservableObject {
 
             choosePrintPDFOutputFolder()
             guard let printPDFOutputFolderURL else {
-                lastErrorMessage = "Select an output folder for Print to PDF."
+                lastErrorMessage = L10n.tr("error.select_print_pdf_output_folder")
                 return
             }
-            logStore.add("Using Print-to-PDF output folder: \(printPDFOutputFolderURL.path)")
+            logStore.add(L10n.tr("log.using_print_pdf_output_folder", printPDFOutputFolderURL.path))
             if needsWordFallback {
                 guard printer.isWordInstalled() else {
-                    lastErrorMessage = "Microsoft Word was not found. Install Word or preprocess all files first."
+                    lastErrorMessage = L10n.tr("error.word_not_found_or_preprocess_first")
                     return
                 }
                 do {
                     try printer.requestAutomationAuthorization()
                 } catch {
                     lastErrorMessage = error.localizedDescription
-                    logStore.add("Printer setup failed: \(error.localizedDescription)")
+                    logStore.add(L10n.tr("log.printer_setup_failed", error.localizedDescription))
                     return
                 }
             }
@@ -377,8 +392,8 @@ final class MainViewModel: ObservableObject {
         shouldCancel = false
         isCancelling = false
         isPrinting = true
-        logStore.add("Using printer: \(selectedPrinterName)")
-        logStore.add("Starting print run for \(targetIDs.count) job(s).")
+        logStore.add(L10n.tr("log.using_printer", selectedPrinterName))
+        logStore.add(L10n.tr("log.starting_print_run", targetIDs.count))
 
         printTask = Task { [weak self] in
             guard let self else { return }
@@ -386,7 +401,7 @@ final class MainViewModel: ObservableObject {
                 isPrinting = false
                 isCancelling = false
                 printTask = nil
-                logStore.add("Print run finished.")
+                logStore.add(L10n.tr("log.print_run_finished"))
             }
 
             for index in jobs.indices {
@@ -397,7 +412,7 @@ final class MainViewModel: ObservableObject {
                 if Task.isCancelled || shouldCancel {
                     if jobs[index].status == .pending || jobs[index].status == .printing {
                         jobs[index].status = .cancelled
-                        jobs[index].message = "Cancelled before printing."
+                        jobs[index].message = L10n.tr("message.cancelled_before_printing")
                     }
                     continue
                 }
@@ -406,9 +421,9 @@ final class MainViewModel: ObservableObject {
                 let preprocessedPDFURL = jobs[index].preprocessedPDFURL
                 let hasPreprocessedPDF = preprocessedPDFURL.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
                 jobs[index].message = hasPreprocessedPDF
-                    ? (exportAsPDF ? "Generating output from preprocessed PDF..." : "Printing preprocessed PDF...")
-                    : (exportAsPDF ? "Exporting to PDF in Microsoft Word..." : "Sending to Microsoft Word...")
-                logStore.add("Printing: \(jobs[index].fileURL.lastPathComponent)")
+                    ? (exportAsPDF ? L10n.tr("message.generating_from_preprocessed_pdf") : L10n.tr("message.printing_preprocessed_pdf"))
+                    : (exportAsPDF ? L10n.tr("message.exporting_to_pdf_in_word") : L10n.tr("message.sending_to_word"))
+                logStore.add(L10n.tr("log.printing_file", jobs[index].fileURL.lastPathComponent))
 
                 do {
                     let fileURL = jobs[index].fileURL
@@ -449,16 +464,16 @@ final class MainViewModel: ObservableObject {
                     jobs[index].status = .success
                     jobs[index].message = result.message
                     jobs[index].printedAt = Date()
-                    logStore.add("Printed successfully: \(jobs[index].fileURL.lastPathComponent)")
+                    logStore.add(L10n.tr("log.printed_successfully", jobs[index].fileURL.lastPathComponent))
                 } catch {
                     jobs[index].status = .failed
                     jobs[index].message = error.localizedDescription
-                    logStore.add("Print failed: \(jobs[index].fileURL.lastPathComponent) — \(error.localizedDescription)")
+                    logStore.add(L10n.tr("log.print_failed", jobs[index].fileURL.lastPathComponent, error.localizedDescription))
 
                     if case WordPrinterError.notAuthorizedToControlWord = error {
                         shouldCancel = true
                         isCancelling = true
-                        logStore.add("Stopping run because Word automation permission is not granted.")
+                        logStore.add(L10n.tr("log.stopping_run_word_permission"))
                     }
                 }
             }
@@ -470,13 +485,13 @@ final class MainViewModel: ObservableObject {
         shouldCancel = true
         isCancelling = true
         printTask?.cancel()
-        logStore.add("Cancellation requested. Current document may still finish first.")
+        logStore.add(L10n.tr("log.cancellation_requested"))
     }
 
     func copyLogsToPasteboard() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(logStore.allText, forType: .string)
-        logStore.add("Copied logs to clipboard.")
+        logStore.add(L10n.tr("log.copied_logs"))
     }
 
     func clearLogs() {

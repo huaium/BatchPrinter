@@ -7,6 +7,23 @@ enum PrintJobStatus: String, Codable, CaseIterable {
     case failed = "Failed"
     case skipped = "Skipped"
     case cancelled = "Cancelled"
+
+    var localizedLabel: String {
+        switch self {
+        case .pending:
+            return L10n.tr("status.pending")
+        case .printing:
+            return L10n.tr("status.printing")
+        case .success:
+            return L10n.tr("status.success")
+        case .failed:
+            return L10n.tr("status.failed")
+        case .skipped:
+            return L10n.tr("status.skipped")
+        case .cancelled:
+            return L10n.tr("status.cancelled")
+        }
+    }
 }
 
 struct PrintJob: Identifiable, Hashable {

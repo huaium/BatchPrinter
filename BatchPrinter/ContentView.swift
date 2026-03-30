@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var viewModel: MainViewModel
+    @AppStorage(L10n.languagePreferenceKey) private var selectedLanguage = L10n.Language.system.rawValue
     @State private var showPreprocessOutputChoice = false
     @State private var showPreprocessInfo = false
     @State private var showPageRangeInfo = false
@@ -40,43 +41,43 @@ struct ContentView: View {
             .padding(.horizontal, 22)
             .padding(.vertical, 24)
         }
-        .alert("Error", isPresented: Binding(
+        .alert("alert.error.title", isPresented: Binding(
             get: { viewModel.lastErrorMessage != nil },
             set: { newValue in if !newValue { viewModel.lastErrorMessage = nil } }
         )) {
-            Button("OK", role: .cancel) { viewModel.lastErrorMessage = nil }
+            Button("common.ok", role: .cancel) { viewModel.lastErrorMessage = nil }
         } message: {
             Text(viewModel.lastErrorMessage ?? "")
         }
         .confirmationDialog(
-            "Preprocess Output Folder",
+            "preprocess.output_dialog.title",
             isPresented: $showPreprocessOutputChoice,
             titleVisibility: .visible
         ) {
-            Button("Use System Temporary Folder") {
+            Button("preprocess.output_dialog.use_system_temp") {
                 viewModel.preprocessAllToPDF(outputMode: .systemTemporary)
             }
-            Button("Choose Output Folder...") {
+            Button("preprocess.output_dialog.choose_folder") {
                 viewModel.preprocessAllToPDF(outputMode: .userSelected)
             }
-            Button("Cancel", role: .cancel) { }
+            Button("common.cancel", role: .cancel) { }
         } message: {
-            Text("Before preprocessing, choose where generated temporary PDFs should be written.")
+            Text("preprocess.output_dialog.message")
         }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("BatchPrinter")
+            Text("app.title")
                 .font(.system(size: 36, weight: .bold, design: .rounded))
 
-            Text("Batch-print local Word and PDF files through native macOS printing and Word automation.")
+            Text("app.subtitle")
                 .foregroundStyle(.secondary)
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Folder")
+                Text("header.folder")
                     .fontWeight(.semibold)
-                Text(viewModel.selectedFolderURL?.path ?? "No folder selected")
+                Text(viewModel.selectedFolderURL?.path ?? L10n.tr("header.no_folder_selected"))
                     .lineLimit(2)
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
@@ -90,14 +91,14 @@ struct ContentView: View {
     private var controls: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                Button("Choose Folder") { viewModel.chooseFolder() }
+                Button("controls.choose_folder") { viewModel.chooseFolder() }
                     .disabled(viewModel.isPrinting || viewModel.isPreprocessing)
-                Toggle("Scan subfolders", isOn: $viewModel.recursiveScan)
+                Toggle("controls.scan_subfolders", isOn: $viewModel.recursiveScan)
                     .toggleStyle(.checkbox)
-                Button("Refresh Files") { viewModel.scanFiles() }
+                Button("controls.refresh_files") { viewModel.scanFiles() }
                     .disabled(viewModel.isPrinting || viewModel.isPreprocessing)
                 HStack(spacing: 6) {
-                    Button(viewModel.isPreprocessing ? "Preprocessing..." : "Preprocess") {
+                    Button(viewModel.isPreprocessing ? L10n.tr("controls.preprocessing") : L10n.tr("controls.preprocess")) {
                         showPreprocessOutputChoice = true
                     }
                     .disabled(viewModel.jobs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
@@ -109,36 +110,36 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .help("What happens when preprocessing starts")
+                    .help("controls.preprocess.help")
                     .popover(isPresented: $showPreprocessInfo, arrowEdge: .bottom) {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Preprocess Behavior")
+                            Text("preprocess.info.title")
                                 .font(.headline)
-                            Text("When you click Preprocess, the app asks where preprocessed PDFs should be written:")
-                            Text("• Use System Temporary Folder: writes to a macOS temp folder managed by the system.")
-                            Text("• Choose Output Folder...: lets you pick a folder and saves preprocessed PDFs there.")
-                            Text("This choice is asked each time before preprocessing starts.")
+                            Text("preprocess.info.line1")
+                            Text("preprocess.info.line2")
+                            Text("preprocess.info.line3")
+                            Text("preprocess.info.line4")
                                 .foregroundStyle(.secondary)
                         }
                         .padding(14)
                         .frame(width: 360)
                     }
                 }
-                Button("Clear") { viewModel.clearJobs() }
+                Button("controls.clear") { viewModel.clearJobs() }
                     .disabled(viewModel.jobs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
                 Spacer()
-                Button("Copy Logs") { viewModel.copyLogsToPasteboard() }
+                Button("controls.copy_logs") { viewModel.copyLogsToPasteboard() }
                     .disabled(viewModel.logStore.lines.isEmpty)
-                Button("Clear Logs") { viewModel.clearLogs() }
+                Button("controls.clear_logs") { viewModel.clearLogs() }
                     .disabled(viewModel.logStore.lines.isEmpty)
             }
 
             HStack(spacing: 12) {
-                Text("Printer")
+                Text("controls.printer")
                     .fontWeight(.semibold)
-                Picker("Printer", selection: $viewModel.selectedPrinterName) {
+                Picker("controls.printer", selection: $viewModel.selectedPrinterName) {
                     if viewModel.availablePrinters.isEmpty {
-                        Text("No printer").tag("")
+                        Text("controls.no_printer").tag("")
                     } else {
                         ForEach(viewModel.availablePrinters, id: \.self) { printer in
                             Text(printer).tag(printer)
@@ -148,10 +149,20 @@ struct ContentView: View {
                 .pickerStyle(.menu)
                 .frame(width: 280)
 
-                Button("Refresh Printers") { viewModel.refreshPrinters() }
+                Button("controls.refresh_printers") { viewModel.refreshPrinters() }
 
-                Toggle("Show only failures", isOn: $viewModel.showOnlyFailures)
+                Toggle("controls.show_only_failures", isOn: $viewModel.showOnlyFailures)
                     .toggleStyle(.checkbox)
+
+                Text("controls.language")
+                    .fontWeight(.semibold)
+                Picker("controls.language", selection: $selectedLanguage) {
+                    Text("language.system").tag(L10n.Language.system.rawValue)
+                    Text("language.english").tag(L10n.Language.english.rawValue)
+                    Text("language.simplified_chinese").tag(L10n.Language.simplifiedChinese.rawValue)
+                }
+                .pickerStyle(.menu)
+                .frame(width: 150)
 
                 Spacer()
                 Text(viewModel.summaryText)
@@ -160,13 +171,13 @@ struct ContentView: View {
             }
 
             HStack(spacing: 12) {
-                Button(viewModel.selectedJobIDs.isEmpty ? "Print All" : "Print Selected") {
+                Button(viewModel.selectedJobIDs.isEmpty ? L10n.tr("controls.print_all") : L10n.tr("controls.print_selected")) {
                     viewModel.startPrintingSelectedOrAll()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.jobs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
 
-                Button(viewModel.isCancelling ? "Cancelling..." : "Cancel") {
+                Button(viewModel.isCancelling ? L10n.tr("controls.cancelling") : L10n.tr("common.cancel")) {
                     viewModel.cancelPrinting()
                 }
                 .disabled(!viewModel.isPrinting)
@@ -175,7 +186,7 @@ struct ContentView: View {
             }
 
             HStack(spacing: 6) {
-                Text("Page range")
+                Text("controls.page_range")
                     .font(.caption)
                     .fontWeight(.semibold)
                 Button {
@@ -185,16 +196,16 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("Page range format help")
+                .help("controls.page_range.help")
                 .popover(isPresented: $showPageRangeInfo, arrowEdge: .bottom) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Page Range Format")
+                        Text("page_range.info.title")
                             .font(.headline)
-                        Text("Supported formats:")
-                        Text("• Single page: 3")
-                        Text("• Range: 2-6")
-                        Text("• Comma-separated pages: 1,2,5 or 4, 2, 1")
-                        Text("Whitespace is ignored. Leave blank for all pages.")
+                        Text("page_range.info.line1")
+                        Text("page_range.info.line2")
+                        Text("page_range.info.line3")
+                        Text("page_range.info.line4")
+                        Text("page_range.info.line5")
                             .foregroundStyle(.secondary)
                     }
                     .padding(14)
@@ -204,10 +215,10 @@ struct ContentView: View {
             }
 
             HStack {
-                Text("Preprocess folder")
+                Text("controls.preprocess_folder")
                     .font(.caption)
                     .fontWeight(.semibold)
-                Text(viewModel.preprocessOutputFolderURL?.path ?? "Not selected")
+                Text(viewModel.preprocessOutputFolderURL?.path ?? L10n.tr("controls.not_selected"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -220,12 +231,12 @@ struct ContentView: View {
 
     private func tableSection(minHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Print Queue")
+            Text("table.title")
                 .font(.title3.bold())
                 .padding(.horizontal, 2)
 
             Table(displayedJobs, selection: $viewModel.selectedJobIDs, sortOrder: $tableSortOrder) {
-                TableColumn("File", value: \.fileName) { job in
+                TableColumn("table.file", value: \.fileName) { job in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(job.fileName)
                             .lineLimit(1)
@@ -237,8 +248,8 @@ struct ContentView: View {
                 }
                 .width(min: 280)
 
-                TableColumn("Status") { job in
-                    Text(job.status.rawValue)
+                TableColumn("table.status") { job in
+                    Text(job.status.localizedLabel)
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -246,14 +257,14 @@ struct ContentView: View {
                 }
                 .width(106)
 
-                TableColumn("Pages") { job in
-                    TextField("All", text: viewModel.pageRangeBinding(for: job.id))
+                TableColumn("table.pages") { job in
+                    TextField("table.all_pages", text: viewModel.pageRangeBinding(for: job.id))
                         .textFieldStyle(.roundedBorder)
                         .disabled(viewModel.isPrinting)
                 }
                 .width(120)
 
-                TableColumn("Total") { job in
+                TableColumn("table.total") { job in
                     if let totalPages = job.totalPages {
                         Text("\(totalPages)")
                     } else {
@@ -263,18 +274,18 @@ struct ContentView: View {
                 }
                 .width(60)
 
-                TableColumn("Preprocessed") { job in
+                TableColumn("table.preprocessed") { job in
                     if let preprocessedPDFURL = job.preprocessedPDFURL,
                        FileManager.default.fileExists(atPath: preprocessedPDFURL.path) {
-                        Text("Yes")
+                        Text("common.yes")
                     } else {
-                        Text("No")
+                        Text("common.no")
                             .foregroundStyle(.secondary)
                     }
                 }
                 .width(100)
 
-                TableColumn("Copies") { job in
+                TableColumn("table.copies") { job in
                     Stepper(value: viewModel.copiesBinding(for: job.id), in: 1...99) {
                         Text("\(max(1, job.copies))")
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -283,13 +294,13 @@ struct ContentView: View {
                 }
                 .width(90)
 
-                TableColumn("Message") { job in
+                TableColumn("table.message") { job in
                     Text(job.message)
                         .lineLimit(2)
                 }
                 .width(min: 320)
 
-                TableColumn("Printed At") { job in
+                TableColumn("table.printed_at") { job in
                     if let printedAt = job.printedAt {
                         Text(printedAt, style: .time)
                     } else {
@@ -298,7 +309,7 @@ struct ContentView: View {
                 }
                 .width(100)
 
-                TableColumn("Path") { job in
+                TableColumn("table.path") { job in
                     Text(job.fileURL.path)
                         .lineLimit(1)
                         .textSelection(.enabled)
@@ -308,7 +319,7 @@ struct ContentView: View {
             .contextMenu(forSelectionType: UUID.self) { selection in
                 if let id = selection.first,
                    let job = viewModel.jobs.first(where: { $0.id == id }) {
-                    Button("Reveal in Finder") {
+                    Button("table.reveal_in_finder") {
                         viewModel.revealInFinder(job: job)
                     }
                 }
@@ -327,12 +338,12 @@ struct ContentView: View {
 
     private func logSection(minHeight: CGFloat, maxHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Logs")
+            Text("logs.title")
                 .font(.title3.bold())
                 .padding(.horizontal, 2)
 
             ScrollView {
-                Text(viewModel.logStore.allText.isEmpty ? "No logs yet." : viewModel.logStore.allText)
+                Text(viewModel.logStore.allText.isEmpty ? L10n.tr("logs.empty") : viewModel.logStore.allText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
                     .font(.system(.caption, design: .monospaced))

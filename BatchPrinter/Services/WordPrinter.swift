@@ -8,9 +8,12 @@ struct WordPrinterResult: Sendable {
 }
 
 enum WordPrinterError: LocalizedError, Sendable {
+    static let printerSelectionFailedErrorNumber = 27001
+
     case wordNotInstalled
     case noPrinterAvailable
     case printerNotFound(String)
+    case printerSelectionFailed(String)
     case invalidPageRange(String)
     case invalidCopies(Int)
     case pdfGenerationFailed(String)
@@ -23,30 +26,29 @@ enum WordPrinterError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .wordNotInstalled:
-            return "Microsoft Word is not installed or its bundle identifier cannot be found."
+            return L10n.tr("word.error.word_not_installed")
         case .noPrinterAvailable:
-            return "No printer is available on this Mac. Add a printer in System Settings first."
+            return L10n.tr("word.error.no_printer_available")
         case .printerNotFound(let name):
-            return "Selected printer was not found: \(name)"
+            return L10n.tr("word.error.printer_not_found", name)
+        case .printerSelectionFailed(let name):
+            return L10n.tr("word.error.printer_selection_failed", name)
         case .invalidPageRange(let range):
-            return "Invalid page range '\(range)'. Use formats like '3', '2-6', or '1,4,2'."
+            return L10n.tr("word.error.invalid_page_range", range)
         case .invalidCopies(let copies):
-            return "Invalid copies value '\(copies)'. Copies must be at least 1."
+            return L10n.tr("word.error.invalid_copies", copies)
         case .pdfGenerationFailed(let details):
-            return "Failed to generate PDF output: \(details)"
+            return L10n.tr("word.error.pdf_generation_failed", details)
         case .pageCountUnavailable(let fileName):
-            return "Unable to read page count for \(fileName)."
+            return L10n.tr("word.error.page_count_unavailable", fileName)
         case .pdfPrintFailed(let details):
-            return "Failed to print preprocessed PDF: \(details)"
+            return L10n.tr("word.error.pdf_print_failed", details)
         case .notAuthorizedToControlWord:
-            return """
-            Not authorized to control Microsoft Word.
-            Enable permission in System Settings > Privacy & Security > Automation, then allow this app to control Microsoft Word.
-            """
+            return L10n.tr("word.error.not_authorized")
         case .appleScriptCompileFailed(let details):
-            return "AppleScript compile failed: \(details)"
+            return L10n.tr("word.error.applescript_compile_failed", details)
         case .appleScriptExecutionFailed(let details):
-            return "AppleScript execution failed: \(details)"
+            return L10n.tr("word.error.applescript_execution_failed", details)
         }
     }
 }
@@ -139,7 +141,7 @@ struct WordPrinter: Sendable {
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
-            throw WordPrinterError.appleScriptCompileFailed("Unable to create NSAppleScript instance.")
+            throw WordPrinterError.appleScriptCompileFailed(L10n.tr("word.error.unable_create_applescript"))
         }
 
         if !script.compileAndReturnError(&compileError) {
@@ -147,7 +149,7 @@ struct WordPrinter: Sendable {
         }
 
         var executionError: NSDictionary?
-        let result = script.executeAndReturnError(&executionError)
+        _ = script.executeAndReturnError(&executionError)
         if let executionError {
             if Self.appleScriptErrorNumber(from: executionError) == -1743 {
                 throw WordPrinterError.notAuthorizedToControlWord
@@ -155,7 +157,7 @@ struct WordPrinter: Sendable {
             throw WordPrinterError.appleScriptExecutionFailed(Self.describe(errorDict: executionError))
         }
 
-        return WordPrinterResult(success: true, message: result.stringValue ?? "Printed")
+        return WordPrinterResult(success: true, message: L10n.tr("word.message.printed"))
     }
 
     func parsePageRange(from rawValue: String) throws -> PageRange? {
@@ -227,7 +229,7 @@ struct WordPrinter: Sendable {
         }
         try FileManager.default.copyItem(at: sourcePDFURL, to: outputURL)
         try postProcessExportedPDF(at: outputURL, pageRange: pageRange, copies: copies)
-        return WordPrinterResult(success: true, message: "Saved PDF: \(outputURL.path)")
+        return WordPrinterResult(success: true, message: L10n.tr("word.message.saved_pdf_path", outputURL.path))
     }
 
     func printPDF(
@@ -280,7 +282,10 @@ struct WordPrinter: Sendable {
         }
 
         let message = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        return WordPrinterResult(success: true, message: message.isEmpty ? "Sent preprocessed PDF to printer." : message)
+        return WordPrinterResult(
+            success: true,
+            message: message.isEmpty ? L10n.tr("word.message.sent_preprocessed_pdf") : message
+        )
     }
 
     func exportDocumentAsPDF(
@@ -313,12 +318,12 @@ struct WordPrinter: Sendable {
             save as active document file name outputPath file format format PDF
             close active document saving no
         end tell
-        return \"Saved PDF: \" & outputPath
+        return outputPath
         """
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
-            throw WordPrinterError.appleScriptCompileFailed("Unable to create NSAppleScript instance.")
+            throw WordPrinterError.appleScriptCompileFailed(L10n.tr("word.error.unable_create_applescript"))
         }
 
         if !script.compileAndReturnError(&compileError) {
@@ -335,16 +340,17 @@ struct WordPrinter: Sendable {
         }
 
         try postProcessExportedPDF(at: outputURL, pageRange: pageRange, copies: copies)
-        return WordPrinterResult(success: true, message: result.stringValue ?? "Saved PDF")
+        let savedPath = result.stringValue ?? outputURL.path
+        return WordPrinterResult(success: true, message: L10n.tr("word.message.saved_pdf_path", savedPath))
     }
 
     private func postProcessExportedPDF(at outputURL: URL, pageRange: PageRange?, copies: Int) throws {
         guard let sourceDocument = PDFDocument(url: outputURL) else {
-            throw WordPrinterError.pdfGenerationFailed("Cannot read exported PDF.")
+            throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.cannot_read_exported_pdf"))
         }
         let sourcePageCount = sourceDocument.pageCount
         guard sourcePageCount > 0 else {
-            throw WordPrinterError.pdfGenerationFailed("Exported PDF has no pages.")
+            throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.exported_pdf_no_pages"))
         }
 
         let processedDocument: PDFDocument
@@ -359,7 +365,7 @@ struct WordPrinter: Sendable {
                     }
                     guard let page = sourceDocument.page(at: pageNumber - 1),
                           let copiedPage = page.copy() as? PDFPage else {
-                        throw WordPrinterError.pdfGenerationFailed("Unable to copy page \(pageNumber).")
+                        throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.unable_copy_page", pageNumber))
                     }
                     rangedDocument.insert(copiedPage, at: rangedDocument.pageCount)
 
@@ -372,7 +378,7 @@ struct WordPrinter: Sendable {
                     while pageNumber <= lastPage {
                         guard let page = sourceDocument.page(at: pageNumber - 1),
                               let copiedPage = page.copy() as? PDFPage else {
-                            throw WordPrinterError.pdfGenerationFailed("Unable to copy page \(pageNumber).")
+                            throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.unable_copy_page", pageNumber))
                         }
                         rangedDocument.insert(copiedPage, at: rangedDocument.pageCount)
                         pageNumber += 1
@@ -385,7 +391,7 @@ struct WordPrinter: Sendable {
         }
 
         guard processedDocument.write(to: outputURL) else {
-            throw WordPrinterError.pdfGenerationFailed("Unable to write PDF to \(outputURL.path).")
+            throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.unable_write_pdf", outputURL.path))
         }
 
         if copies <= 1 {
@@ -401,7 +407,7 @@ struct WordPrinter: Sendable {
                 directory: directory
             )
             guard processedDocument.write(to: copyURL) else {
-                throw WordPrinterError.pdfGenerationFailed("Unable to write copy at \(copyURL.path).")
+                throw WordPrinterError.pdfGenerationFailed(L10n.tr("word.error.unable_write_copy", copyURL.path))
             }
             copyIndex += 1
         }
@@ -421,7 +427,7 @@ struct WordPrinter: Sendable {
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
-            throw WordPrinterError.appleScriptCompileFailed("Unable to create NSAppleScript instance.")
+            throw WordPrinterError.appleScriptCompileFailed(L10n.tr("word.error.unable_create_applescript"))
         }
 
         if !script.compileAndReturnError(&compileError) {
@@ -457,14 +463,14 @@ struct WordPrinter: Sendable {
             activate
             set active printer to targetPrinter
             if active printer is not targetPrinter then
-                error \"Failed to select printer: \" & targetPrinter
+                error "Failed to select printer" number \(WordPrinterError.printerSelectionFailedErrorNumber)
             end if
         end tell
         """
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
-            throw WordPrinterError.appleScriptCompileFailed("Unable to create NSAppleScript instance.")
+            throw WordPrinterError.appleScriptCompileFailed(L10n.tr("word.error.unable_create_applescript"))
         }
 
         if !script.compileAndReturnError(&compileError) {
@@ -474,6 +480,9 @@ struct WordPrinter: Sendable {
         var executionError: NSDictionary?
         _ = script.executeAndReturnError(&executionError)
         if let executionError {
+            if Self.appleScriptErrorNumber(from: executionError) == WordPrinterError.printerSelectionFailedErrorNumber {
+                throw WordPrinterError.printerSelectionFailed(printerName)
+            }
             if Self.appleScriptErrorNumber(from: executionError) == -1743 {
                 throw WordPrinterError.notAuthorizedToControlWord
             }
@@ -499,7 +508,7 @@ struct WordPrinter: Sendable {
     }
 
     static func describe(errorDict: NSDictionary?) -> String {
-        guard let errorDict else { return "Unknown AppleScript error." }
+        guard let errorDict else { return L10n.tr("word.error.unknown_applescript") }
         let items = errorDict.compactMap { key, value in
             "\(key): \(value)"
         }

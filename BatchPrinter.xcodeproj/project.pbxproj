@@ -14,6 +14,8 @@
 		A005 /* WordPrinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B005 /* WordPrinter.swift */; };
 		A006 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B006 /* MainViewModel.swift */; };
 		A007 /* LogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B007 /* LogStore.swift */; };
+		A008 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B008 /* L10n.swift */; };
+		A009 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B011 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +27,8 @@
 		B005 /* WordPrinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordPrinter.swift; sourceTree = "<group>"; };
 		B006 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		B007 /* LogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
+		B008 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		B011 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +59,7 @@
 				D003 /* Services */,
 				D004 /* ViewModels */,
 				D005 /* Utilities */,
+				B011 /* Localizable.xcstrings */,
 			);
 			path = BatchPrinter;
 			sourceTree = "<group>";
@@ -88,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				B007 /* LogStore.swift */,
+				B008 /* L10n.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -142,6 +148,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = D000;
 			productRefGroup = D010 /* Products */;
@@ -158,6 +165,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A009 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +183,7 @@
 				A005 /* WordPrinter.swift in Sources */,
 				A006 /* MainViewModel.swift in Sources */,
 				A007 /* LogStore.swift in Sources */,
+				A008 /* L10n.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
