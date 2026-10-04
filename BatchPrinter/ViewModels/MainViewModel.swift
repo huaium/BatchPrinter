@@ -54,20 +54,22 @@ final class MainViewModel: ObservableObject {
         return L10n.tr(
             "summary.format",
             counts.total,
-            counts.printed,
+            counts.submitted,
+            counts.saved,
             counts.failed,
             counts.skipped,
             counts.cancelled
         )
     }
 
-    var summaryCounts: (total: Int, printed: Int, failed: Int, skipped: Int, cancelled: Int) {
+    var summaryCounts: (total: Int, submitted: Int, saved: Int, failed: Int, skipped: Int, cancelled: Int) {
         let total = jobs.count
-        let printed = jobs.filter { $0.status == .success }.count
+        let submitted = jobs.filter { $0.status == .submitted }.count
+        let saved = jobs.filter { $0.status == .saved }.count
         let failed = jobs.filter { $0.status == .failed }.count
         let skipped = jobs.filter { $0.status == .skipped }.count
         let cancelled = jobs.filter { $0.status == .cancelled }.count
-        return (total, printed, failed, skipped, cancelled)
+        return (total, submitted, saved, failed, skipped, cancelled)
     }
 
     func chooseFolder() {
@@ -225,7 +227,8 @@ final class MainViewModel: ObservableObject {
         for index in jobs.indices {
             jobs[index].status = .pending
             jobs[index].message = ""
-            jobs[index].printedAt = nil
+            jobs[index].completedAt = nil
+            jobs[index].printJobID = nil
         }
         logStore.add(L10n.tr("log.preprocessing_files", jobs.count))
 
@@ -455,6 +458,8 @@ final class MainViewModel: ObservableObject {
                 }
 
                 jobs[index].status = .printing
+                jobs[index].completedAt = nil
+                jobs[index].printJobID = nil
                 let preprocessedPDFURL = jobs[index].preprocessedPDFURL
                 let hasPreprocessedPDF = preprocessedPDFURL.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
                 jobs[index].message = hasPreprocessedPDF
@@ -497,10 +502,11 @@ final class MainViewModel: ObservableObject {
                         }
                         return try printer.printDocument(at: fileURL, pageRange: pageRange, copies: copies)
                     }.value
-                    jobs[index].status = .success
+                    jobs[index].status = exportAsPDF ? .saved : .submitted
                     jobs[index].message = result.message
-                    jobs[index].printedAt = Date()
-                    logStore.add(L10n.tr("log.printed_successfully", jobs[index].fileURL.lastPathComponent))
+                    jobs[index].completedAt = Date()
+                    jobs[index].printJobID = result.printJobID
+                    logStore.add(L10n.tr(exportAsPDF ? "log.pdf_saved" : "log.print_submitted", jobs[index].fileURL.lastPathComponent))
                 } catch {
                     jobs[index].status = .failed
                     jobs[index].message = error.localizedDescription

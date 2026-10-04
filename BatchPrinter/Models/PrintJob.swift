@@ -5,7 +5,8 @@ enum PrintJobStatus: String, Codable, CaseIterable {
     case preparing = "Preparing"
     case ready = "Ready"
     case printing = "Printing"
-    case success = "Printed"
+    case submitted = "Submitted"
+    case saved = "Saved"
     case failed = "Failed"
     case skipped = "Skipped"
     case cancelled = "Cancelled"
@@ -20,8 +21,10 @@ enum PrintJobStatus: String, Codable, CaseIterable {
             return L10n.tr("status.ready")
         case .printing:
             return L10n.tr("status.printing")
-        case .success:
-            return L10n.tr("status.success")
+        case .submitted:
+            return L10n.tr("status.submitted")
+        case .saved:
+            return L10n.tr("status.saved")
         case .failed:
             return L10n.tr("status.failed")
         case .skipped:
@@ -41,7 +44,8 @@ struct PrintJob: Identifiable, Hashable {
     var copies: Int = 1
     var status: PrintJobStatus = .pending
     var message: String = ""
-    var printedAt: Date?
+    var completedAt: Date?
+    var printJobID: String?
 
     var fileName: String {
         fileURL.lastPathComponent

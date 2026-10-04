@@ -48,14 +48,15 @@ struct ContentView: View {
 
     private var summaryText: String {
         let counts = viewModel.summaryCounts
-        if counts.printed == 0 && counts.failed == 0 && counts.skipped == 0 && counts.cancelled == 0
+        if counts.submitted == 0 && counts.saved == 0 && counts.failed == 0 && counts.skipped == 0 && counts.cancelled == 0
         {
             return localizedFormat("ui.file_count", counts.total)
         }
         return localizedFormat(
             "summary.format",
             counts.total,
-            counts.printed,
+            counts.submitted,
+            counts.saved,
             counts.failed,
             counts.skipped,
             counts.cancelled
@@ -399,8 +400,12 @@ struct ContentView: View {
                     Text(job.message.isEmpty ? "—" : job.message)
                 }
                 GridRow {
-                    Text("table.printed_at")
-                    if let date = job.printedAt { Text(date, style: .time) } else { Text("—") }
+                    Text(job.status == .saved ? localized("table.saved_at") : localized("table.submitted_at"))
+                    if let date = job.completedAt { Text(date, style: .time) } else { Text("—") }
+                }
+                GridRow {
+                    Text("table.print_job_id")
+                    Text(job.printJobID ?? "—").textSelection(.enabled)
                 }
                 GridRow {
                     Text("table.path")
@@ -457,7 +462,7 @@ struct ContentView: View {
             return .gray
         case .printing, .preparing:
             return .blue
-        case .success, .ready:
+        case .submitted, .saved, .ready:
             return .green
         case .failed:
             return .red

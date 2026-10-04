@@ -61,6 +61,9 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 ## Behavior Notes
 
 - Printing is silent (no print dialog).
+- Submitted means the print system accepted the job, not that paper was printed.
+  CUPS job IDs appear in File Details when returned by `lp`. PDF exports show
+  Saved separately; printer completion tracking is not implemented.
 - Word may come to foreground while automated actions run.
 - Word source files already open in Word are skipped with an error; save and close
   them before running BatchPrinter. Automation opens sources read-only and targets

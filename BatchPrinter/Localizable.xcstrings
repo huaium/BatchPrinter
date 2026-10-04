@@ -1167,6 +1167,23 @@
         }
       }
     },
+    "log.pdf_saved" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF saved: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF 已保存: %@"
+          }
+        }
+      }
+    },
     "log.preprocess_cancellation_requested" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1401,6 +1418,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打印任务结束。"
+          }
+        }
+      }
+    },
+    "log.print_submitted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submitted to printer: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已提交至打印机: %@"
           }
         }
       }
@@ -2205,6 +2239,23 @@
         }
       }
     },
+    "status.saved" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存"
+          }
+        }
+      }
+    },
     "status.skipped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2218,6 +2269,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已跳过"
+          }
+        }
+      }
+    },
+    "status.submitted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submitted"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已提交"
           }
         }
       }
@@ -2245,13 +2313,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Total: %d  Printed: %d  Failed: %d  Skipped: %d  Cancelled: %d"
+            "value" : "Total: %d  Submitted: %d  Saved: %d  Failed: %d  Skipped: %d  Cancelled: %d"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "总计: %d  已打印: %d  失败: %d  跳过: %d  已取消: %d"
+            "value" : "总计: %d  已提交: %d  已保存: %d  失败: %d  跳过: %d  已取消: %d"
           }
         }
       }
@@ -2368,7 +2436,24 @@
         }
       }
     },
+    "table.print_job_id" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Print Job ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打印任务 ID"
+          }
+        }
+      }
+    },
     "table.printed_at" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2400,6 +2485,23 @@
         }
       }
     },
+    "table.saved_at" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved At"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存时间"
+          }
+        }
+      }
+    },
     "table.status" : {
       "localizations" : {
         "en" : {
@@ -2412,6 +2514,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "状态"
+          }
+        }
+      }
+    },
+    "table.submitted_at" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submitted At"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提交时间"
           }
         }
       }
@@ -2999,6 +3118,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已将预处理 PDF 发送到打印机。"
+          }
+        }
+      }
+    },
+    "word.message.submitted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submitted to printer. Completion has not been verified."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已提交至打印机，尚未确认打印完成。"
           }
         }
       }

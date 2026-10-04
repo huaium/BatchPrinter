@@ -5,6 +5,7 @@ import PDFKit
 struct WordPrinterResult: Sendable {
     let success: Bool
     let message: String
+    var printJobID: String? = nil
 }
 
 enum WordPrinterError: LocalizedError, Sendable {
@@ -152,7 +153,7 @@ struct WordPrinter: Sendable {
             throw WordPrinterError.appleScriptExecutionFailed(Self.describe(errorDict: executionError))
         }
 
-        return WordPrinterResult(success: true, message: L10n.tr("word.message.printed"))
+        return WordPrinterResult(success: true, message: L10n.tr("word.message.submitted"))
     }
 
     func parsePageRange(from rawValue: String) throws -> PageRange? {
@@ -259,6 +260,9 @@ struct WordPrinter: Sendable {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/lp")
         process.arguments = arguments
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "C"
+        process.environment = environment
 
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -279,8 +283,16 @@ struct WordPrinter: Sendable {
         let message = output.trimmingCharacters(in: .whitespacesAndNewlines)
         return WordPrinterResult(
             success: true,
-            message: message.isEmpty ? L10n.tr("word.message.sent_preprocessed_pdf") : message
+            message: message.isEmpty ? L10n.tr("word.message.submitted") : message,
+            printJobID: Self.printJobID(from: message)
         )
+    }
+
+    static func printJobID(from output: String) -> String? {
+        guard let expression = try? NSRegularExpression(pattern: #"(?m)^request id is (\S+-[0-9]+)(?:\s|$)"#),
+              let match = expression.firstMatch(in: output, range: NSRange(output.startIndex..., in: output)),
+              let range = Range(match.range(at: 1), in: output) else { return nil }
+        return String(output[range])
     }
 
     func exportDocumentAsPDF(
