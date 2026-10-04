@@ -9,6 +9,7 @@ struct WordPrinterResult: Sendable {
 
 enum WordPrinterError: LocalizedError, Sendable {
     static let printerSelectionFailedErrorNumber = 27001
+    static let documentAlreadyOpenErrorNumber = 27002
 
     case wordNotInstalled
     case noPrinterAvailable
@@ -20,6 +21,7 @@ enum WordPrinterError: LocalizedError, Sendable {
     case pageCountUnavailable(String)
     case pdfPrintFailed(String)
     case notAuthorizedToControlWord
+    case documentAlreadyOpen(String)
     case appleScriptCompileFailed(String)
     case appleScriptExecutionFailed(String)
 
@@ -45,6 +47,8 @@ enum WordPrinterError: LocalizedError, Sendable {
             return L10n.tr("word.error.pdf_print_failed", details)
         case .notAuthorizedToControlWord:
             return L10n.tr("word.error.not_authorized")
+        case .documentAlreadyOpen(let fileName):
+            return L10n.tr("word.error.document_already_open", fileName)
         case .appleScriptCompileFailed(let details):
             return L10n.tr("word.error.applescript_compile_failed", details)
         case .appleScriptExecutionFailed(let details):
@@ -104,9 +108,6 @@ struct WordPrinter: Sendable {
             throw WordPrinterError.invalidCopies(copies)
         }
 
-        let escapedPath = fileURL.path
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
         let printCommands: String
         if let pageRange {
             let commands = pageRange.segments.map { segment in
@@ -122,22 +123,13 @@ struct WordPrinter: Sendable {
             printCommands = "print out openedDocument"
         }
 
-        let scriptSource = """
-        set targetPath to \"\(escapedPath)\"
-        tell application \"Microsoft Word\"
-            activate
-            set openedDocument to open POSIX file targetPath
-            delay 0.8
+        let scriptSource = Self.documentAutomationScript(at: fileURL, commands: """
             repeat \(copies) times
                 \(printCommands)
                 delay 0.3
             end repeat
             delay 2
-            close openedDocument saving no
-        end tell
-
-        return \"Printed\"
-        """
+        """)
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
@@ -151,6 +143,9 @@ struct WordPrinter: Sendable {
         var executionError: NSDictionary?
         _ = script.executeAndReturnError(&executionError)
         if let executionError {
+            if Self.appleScriptErrorNumber(from: executionError) == WordPrinterError.documentAlreadyOpenErrorNumber {
+                throw WordPrinterError.documentAlreadyOpen(fileURL.lastPathComponent)
+            }
             if Self.appleScriptErrorNumber(from: executionError) == -1743 {
                 throw WordPrinterError.notAuthorizedToControlWord
             }
@@ -301,25 +296,13 @@ struct WordPrinter: Sendable {
             throw WordPrinterError.invalidCopies(copies)
         }
 
-        let escapedInputPath = fileURL.path
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
         let escapedOutputPath = outputURL.path
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
 
-        let scriptSource = """
-        set targetPath to \"\(escapedInputPath)\"
-        set outputPath to \"\(escapedOutputPath)\"
-        tell application \"Microsoft Word\"
-            activate
-            open POSIX file targetPath
-            delay 0.8
-            save as active document file name outputPath file format format PDF
-            close active document saving no
-        end tell
-        return outputPath
-        """
+        let scriptSource = Self.documentAutomationScript(at: fileURL, commands: """
+            save as openedDocument file name "\(escapedOutputPath)" file format format PDF
+        """)
 
         var compileError: NSDictionary?
         guard let script = NSAppleScript(source: scriptSource) else {
@@ -331,8 +314,11 @@ struct WordPrinter: Sendable {
         }
 
         var executionError: NSDictionary?
-        let result = script.executeAndReturnError(&executionError)
+        _ = script.executeAndReturnError(&executionError)
         if let executionError {
+            if Self.appleScriptErrorNumber(from: executionError) == WordPrinterError.documentAlreadyOpenErrorNumber {
+                throw WordPrinterError.documentAlreadyOpen(fileURL.lastPathComponent)
+            }
             if Self.appleScriptErrorNumber(from: executionError) == -1743 {
                 throw WordPrinterError.notAuthorizedToControlWord
             }
@@ -340,8 +326,59 @@ struct WordPrinter: Sendable {
         }
 
         try postProcessExportedPDF(at: outputURL, pageRange: pageRange, copies: copies)
-        let savedPath = result.stringValue ?? outputURL.path
-        return WordPrinterResult(success: true, message: L10n.tr("word.message.saved_pdf_path", savedPath))
+        return WordPrinterResult(success: true, message: L10n.tr("word.message.saved_pdf_path", outputURL.path))
+    }
+
+    /// Refuse user-owned documents before opening, and resolve the input by its
+    /// full path rather than following whichever window becomes active.
+    private static func documentAutomationScript(at fileURL: URL, commands: String) -> String {
+        let escapedPath = fileURL.resolvingSymlinksInPath().path
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+        return """
+        set targetFile to (POSIX file "\(escapedPath)") as alias
+        tell application "Microsoft Word"
+            activate
+            set existingDocuments to get documents
+            repeat with candidateDocument in existingDocuments
+                set candidateFile to missing value
+                try
+                    set candidateFile to (full name of candidateDocument) as alias
+                end try
+                if candidateFile is targetFile then
+                    error "Document is already open in Word" number \(WordPrinterError.documentAlreadyOpenErrorNumber)
+                end if
+            end repeat
+            set openedDocument to missing value
+            try
+                open targetFile read only true revert false
+                set currentDocuments to get documents
+                repeat with candidateDocument in currentDocuments
+                    set candidateFile to missing value
+                    try
+                        set candidateFile to (full name of candidateDocument) as alias
+                    end try
+                    if candidateFile is targetFile then
+                        set openedDocument to contents of candidateDocument
+                        exit repeat
+                    end if
+                end repeat
+                if openedDocument is missing value then
+                    error "Unable to locate the opened Word document" number -1728
+                end if
+                delay 0.8
+                \(commands)
+                close openedDocument saving no
+            on error errorText number errorNumber
+                if openedDocument is not missing value then
+                    try
+                        close openedDocument saving no
+                    end try
+                end if
+                error errorText number errorNumber
+            end try
+        end tell
+        """
     }
 
     private func postProcessExportedPDF(at outputURL: URL, pageRange: PageRange?, copies: Int) throws {

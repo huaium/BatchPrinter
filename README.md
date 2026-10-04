@@ -59,6 +59,9 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 
 - Printing is silent (no print dialog).
 - Word may come to foreground while automated actions run.
+- Word source files already open in Word are skipped with an error; save and close
+  them before running BatchPrinter. Automation opens sources read-only and targets
+  the specific document, including cleanup after an export or print error.
 - If Word shows modal dialogs, queue progress can pause until dismissed.
 - During active print/preprocess runs, folder selection and scan refresh are blocked to avoid state corruption.
 

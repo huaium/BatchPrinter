@@ -2561,6 +2561,23 @@
         }
       }
     },
+    "word.error.document_already_open" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” is already open in Word. Save and close it before running BatchPrinter."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”已在 Word 中打开。请先保存并关闭，再使用 BatchPrinter。"
+          }
+        }
+      }
+    },
     "word.error.exported_pdf_no_pages" : {
       "extractionState" : "stale",
       "localizations" : {
