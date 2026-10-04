@@ -78,6 +78,10 @@ without launching the app. Tests generate PDFs in isolated temporary folders and
 cover page selection, duplicate output filenames, preparation cancellation, and
 failure recovery. They do not automate Word or submit print jobs.
 
+GitHub Actions runs the same Xcode tests on pushes and pull requests to `main`.
+The workflow can also be started manually and uploads the `.xcresult` test report.
+Signing is disabled; no signing credentials or Microsoft Word are required.
+
 ## Behavior Notes
 
 - Printing is silent (no print dialog).

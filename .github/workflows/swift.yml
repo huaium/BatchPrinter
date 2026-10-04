@@ -1,0 +1,51 @@
+name: Swift
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: swift-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test macOS app
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Build and run tests
+        run: |
+          xcodebuild test \
+            -project BatchPrinter.xcodeproj \
+            -scheme BatchPrinter \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/BatchPrinterDerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/BatchPrinterTests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: BatchPrinterTests
+          path: ${{ runner.temp }}/BatchPrinterTests.xcresult
+          if-no-files-found: warn
+          retention-days: 7
