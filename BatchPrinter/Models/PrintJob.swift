@@ -55,6 +55,13 @@ struct PrintJob: Identifiable, Hashable {
         fileURL.deletingLastPathComponent().lastPathComponent
     }
 
+    var previewURL: URL? {
+        if let preprocessedPDFURL, FileManager.default.fileExists(atPath: preprocessedPDFURL.path) {
+            return preprocessedPDFURL
+        }
+        return FileManager.default.fileExists(atPath: fileURL.path) ? fileURL : nil
+    }
+
     var isPDFSource: Bool {
         fileURL.pathExtension.lowercased() == "pdf"
     }

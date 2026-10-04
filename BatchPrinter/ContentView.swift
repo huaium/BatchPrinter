@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import QuickLookUI
 
 struct ContentView: View {
     @EnvironmentObject private var viewModel: MainViewModel
@@ -9,6 +10,7 @@ struct ContentView: View {
     @State private var showPreprocessInfo = false
     @State private var showPageRangeInfo = false
     @State private var showFileDetails = false
+    @State private var previewItem: PreviewItem?
     @State private var tableSortOrder: [KeyPathComparator<PrintJob>] = [
         KeyPathComparator(\.fileName, order: .forward)
     ]
@@ -77,6 +79,19 @@ struct ContentView: View {
             .font(.system(size: 16))
             .controlSize(.large)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .sheet(item: $previewItem) { item in
+            VStack(spacing: 0) {
+                HStack {
+                    Text(item.url.lastPathComponent).font(.headline).lineLimit(1)
+                    Spacer()
+                    Button("common.close") { previewItem = nil }
+                        .keyboardShortcut(.cancelAction)
+                }
+                .padding()
+                QuickLookPreview(url: item.url)
+            }
+            .frame(width: 850, height: 650)
         }
         .alert(
             "alert.error.title",
@@ -259,6 +274,8 @@ struct ContentView: View {
                 }
                     .disabled(viewModel.isCancelling)
             }
+            Button("controls.retry_failed") { viewModel.retryFailed() }
+                .disabled(viewModel.failedJobIDs.isEmpty || viewModel.isPrinting || viewModel.isPreprocessing)
             Button(printButtonTitle) { viewModel.startPrintingSelectedOrAll() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
@@ -289,6 +306,10 @@ struct ContentView: View {
                 if let job = viewModel.jobs.first(where: {
                     viewModel.selectedJobIDs.contains($0.id)
                 }) {
+                    Button("controls.preview") {
+                        if let url = job.previewURL { previewItem = PreviewItem(url: url) }
+                    }
+                    .disabled(job.previewURL == nil)
                     Button("ui.file_details") { showFileDetails = true }
                         .popover(isPresented: $showFileDetails) {
                             fileDetails(job)
@@ -483,5 +504,32 @@ extension View {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .strokeBorder(Color.secondary.opacity(0.12), lineWidth: 1)
         }
+    }
+}
+
+private struct PreviewItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+// SwiftUI owns presentation; Quick Look owns rendering and its native controls.
+private struct QuickLookPreview: NSViewRepresentable {
+    let url: URL
+
+    func makeNSView(context: Context) -> QLPreviewView {
+        let view = QLPreviewView(frame: .zero, style: .normal)!
+        view.shouldCloseWithWindow = false
+        view.previewItem = url as NSURL
+        return view
+    }
+
+    func updateNSView(_ view: QLPreviewView, context: Context) {
+        if (view.previewItem as? NSURL) != url as NSURL {
+            view.previewItem = url as NSURL
+        }
+    }
+
+    static func dismantleNSView(_ view: QLPreviewView, coordinator: ()) {
+        view.close()
     }
 }

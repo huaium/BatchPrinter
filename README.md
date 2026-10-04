@@ -16,6 +16,11 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 - Queue management with per-file status, selection, and logs.
 - Preparation shows Preparing, Ready, Failed, or Cancelled for each file; error
   details are available in File Details. Show only failures filters the queue.
+- Select a queue item and click `Preview` to open the native Quick Look preview.
+  Prepared PDFs take priority; otherwise the original document is previewed.
+- `Retry Failed` retries only failed jobs, retaining page ranges and copy counts.
+  If any failed job needs preparation, the failed jobs are prepared and selected
+  for `Print Selected` afterward. Otherwise, printing/export is retried directly.
 - Queue sorting by clicking the `File` table header (ascending/descending).
 - Preprocess flow asks output destination each run:
   - system temporary folder

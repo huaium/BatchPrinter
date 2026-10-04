@@ -179,14 +179,16 @@ final class MainViewModel: ObservableObject {
         }
     }
 
-    func preprocessAllToPDF(outputMode: PreprocessOutputMode) {
+    func preprocessAllToPDF(outputMode: PreprocessOutputMode, jobIDs: Set<UUID>? = nil) {
         guard !isPrinting else { return }
         guard !isPreprocessing else { return }
         guard !jobs.isEmpty else {
             lastErrorMessage = L10n.tr("error.no_jobs_to_preprocess")
             return
         }
-        let hasWordInputs = jobs.contains { !$0.isPDFSource }
+        let targetIDs = jobIDs ?? Set(jobs.map(\.id))
+        guard !targetIDs.isEmpty else { return }
+        let hasWordInputs = jobs.contains { targetIDs.contains($0.id) && !$0.isPDFSource }
         guard !hasWordInputs || printer.isWordInstalled() else {
             lastErrorMessage = L10n.tr("error.word_not_found_install_first")
             return
@@ -237,13 +239,13 @@ final class MainViewModel: ObservableObject {
 
         isPreprocessing = true
         isCancelling = false
-        for index in jobs.indices {
+        for index in jobs.indices where targetIDs.contains(jobs[index].id) {
             jobs[index].status = .pending
             jobs[index].message = ""
             jobs[index].completedAt = nil
             jobs[index].printJobID = nil
         }
-        logStore.add(L10n.tr("log.preprocessing_files", jobs.count))
+        logStore.add(L10n.tr("log.preprocessing_files", targetIDs.count))
 
         preprocessTask = Task { [weak self] in
             guard let self else { return }
@@ -254,6 +256,7 @@ final class MainViewModel: ObservableObject {
                 logStore.add(L10n.tr("log.preprocess_finished"))
             }
             for index in jobs.indices {
+                guard targetIDs.contains(jobs[index].id) else { continue }
                 await Task.yield()
                 if Task.isCancelled {
                     jobs[index].status = .cancelled
@@ -369,7 +372,33 @@ final class MainViewModel: ObservableObject {
         )
     }
 
+    var failedJobIDs: Set<UUID> {
+        Set(jobs.filter { $0.status == .failed }.map(\.id))
+    }
+
+    func retryFailed() {
+        guard !isPrinting && !isPreprocessing else { return }
+        let failedIDs = failedJobIDs
+        guard !failedIDs.isEmpty else { return }
+        let needsPreparation = jobs.filter { failedIDs.contains($0.id) }.contains {
+            guard let pdfURL = $0.preprocessedPDFURL else { return true }
+            return !FileManager.default.fileExists(atPath: pdfURL.path)
+        }
+        if needsPreparation {
+            // Retain the retry selection so recovered documents can be printed next.
+            selectedJobIDs = failedIDs
+            preprocessAllToPDF(outputMode: preprocessOutputFolderURL == nil ? .systemTemporary : .userSelected,
+                               jobIDs: failedIDs)
+        } else {
+            startPrinting(jobIDs: failedIDs)
+        }
+    }
+
     func startPrintingSelectedOrAll() {
+        startPrinting(jobIDs: selectedJobIDs.isEmpty ? Set(jobs.map(\.id)) : selectedJobIDs)
+    }
+
+    private func startPrinting(jobIDs targetIDs: Set<UUID>) {
         guard !isPrinting else { return }
         guard !isPreprocessing else {
             lastErrorMessage = L10n.tr("error.preprocess_still_running")
@@ -385,7 +414,6 @@ final class MainViewModel: ObservableObject {
         let selectedPrinter = selectedPrinterName
         let exportAsPDF = selectedPrinter == WordPrinter.virtualPDFPrinterName
 
-        let targetIDs = selectedJobIDs.isEmpty ? Set(jobs.map(\.id)) : selectedJobIDs
         guard !targetIDs.isEmpty else {
             lastErrorMessage = L10n.tr("error.no_jobs_selected")
             return

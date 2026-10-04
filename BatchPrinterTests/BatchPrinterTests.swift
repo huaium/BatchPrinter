@@ -166,6 +166,58 @@ final class PreparationTests: XCTestCase {
     }
 }
 
+final class PreviewAndRetryTests: XCTestCase {
+    func testPreviewPrefersPreparedPDFAndFallsBackToSource() throws {
+        try withTemporaryFolder { folder in
+            let source = folder.appendingPathComponent("source.docx")
+            let prepared = folder.appendingPathComponent("prepared.pdf")
+            try Data().write(to: source)
+            try makePDF(at: prepared, pages: 1)
+            var job = PrintJob(fileURL: source)
+            XCTAssertEqual(job.previewURL, source)
+            job.preprocessedPDFURL = prepared
+            XCTAssertEqual(job.previewURL, prepared)
+            job.preprocessedPDFURL = folder.appendingPathComponent("missing.pdf")
+            XCTAssertEqual(job.previewURL, source)
+            XCTAssertNil(PrintJob(fileURL: folder.appendingPathComponent("missing.docx")).previewURL)
+        }
+    }
+
+    @MainActor
+    func testRetryPreparationOnlyTouchesFailedJobsAndPreservesSettings() async throws {
+        let folder = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let source = folder.appendingPathComponent("repaired.pdf")
+        try makePDF(at: source, pages: 3)
+        let model = MainViewModel()
+        var failed = PrintJob(fileURL: source)
+        failed.status = .failed
+        failed.pageRange = "3,1"
+        failed.copies = 2
+        failed.message = "Previous error"
+        var submitted = PrintJob(fileURL: source)
+        submitted.status = .submitted
+        submitted.printJobID = "printer-42"
+        submitted.message = "Submitted"
+        let cancelled = PrintJob(fileURL: source, status: .cancelled)
+        model.jobs = [failed, submitted, cancelled]
+        XCTAssertEqual(model.failedJobIDs, [failed.id])
+        model.retryFailed()
+        try await waitForPreparation(model)
+        XCTAssertEqual(model.jobs[0].status, .ready)
+        XCTAssertEqual(model.jobs[0].pageRange, "3,1")
+        XCTAssertEqual(model.jobs[0].copies, 2)
+        XCTAssertEqual(model.jobs[0].totalPages, 3)
+        XCTAssertEqual(model.jobs[1], submitted)
+        XCTAssertEqual(model.jobs[2], cancelled)
+        XCTAssertEqual(model.selectedJobIDs, [failed.id])
+        XCTAssertTrue(model.failedJobIDs.isEmpty)
+        model.retryFailed()
+        XCTAssertFalse(model.isPreprocessing)
+        XCTAssertFalse(model.isPrinting)
+    }
+}
+
 final class RefreshTests: XCTestCase {
     @MainActor
     func testRefreshPreservesSettingsAndSelectionWhileAddingAndRemovingFiles() throws {

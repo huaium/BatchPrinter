@@ -1,6 +1,54 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+"common.close" : {
+  "localizations": {
+    "en": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Close"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "关闭"
+      }
+    }
+  }
+},
+"controls.retry_failed" : {
+  "localizations": {
+    "en": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Retry Failed"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "重试失败任务"
+      }
+    }
+  }
+},
+"controls.preview" : {
+  "localizations": {
+    "en": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Preview"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "预览"
+      }
+    }
+  }
+},
     "" : {
 
     },
