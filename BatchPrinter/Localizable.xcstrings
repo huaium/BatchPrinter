@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "—" : {
 
     },
@@ -24,6 +27,7 @@
       }
     },
     "app.subtitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -40,6 +44,7 @@
       }
     },
     "app.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -72,6 +77,7 @@
       }
     },
     "common.no" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -138,6 +144,7 @@
       }
     },
     "common.yes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -300,6 +307,7 @@
       }
     },
     "controls.page_range.help" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -321,7 +329,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preprocess"
+            "value" : "Prepare PDFs"
           }
         },
         "zh-Hans" : {
@@ -337,7 +345,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preprocess folder"
+            "value" : "PDF output folder"
           }
         },
         "zh-Hans" : {
@@ -717,6 +725,7 @@
       }
     },
     "header.folder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1901,7 +1910,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Choose Output Folder...: lets you pick a folder and saves preprocessed PDFs there."
+            "value" : "• Choose Output Folder: lets you pick a folder and saves preprocessed PDFs there."
           }
         },
         "zh-Hans" : {
@@ -1949,7 +1958,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose Output Folder..."
+            "value" : "Choose Output Folder"
           }
         },
         "zh-Hans" : {
@@ -2332,6 +2341,138 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "总页数"
+          }
+        }
+      }
+    },
+    "ui.activity" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动记录"
+          }
+        }
+      }
+    },
+    "ui.choose_folder_hint" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add your Word and PDF files, then choose a printer."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加 Word 和 PDF 文件，然后选择打印机。"
+          }
+        }
+      }
+    },
+    "ui.choose_folder_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a folder to get started"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择文件夹以开始"
+          }
+        }
+      }
+    },
+    "ui.empty_hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a folder containing Word or PDF documents."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择包含 Word 或 PDF 文档的文件夹。"
+          }
+        }
+      }
+    },
+    "ui.empty_title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your files will appear here"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件将显示在这里"
+          }
+        }
+      }
+    },
+    "ui.file_count" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个文件"
+          }
+        }
+      }
+    },
+    "ui.file_details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected file details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选文件详情"
+          }
+        }
+      }
+    },
+    "ui.options" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preprocess"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预处理"
           }
         }
       }
