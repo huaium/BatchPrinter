@@ -1,77 +1,81 @@
 import Foundation
 
 enum L10n {
-    enum Language: String, CaseIterable {
-        case system
-        case english = "en"
-        case simplifiedChinese = "zh-Hans"
-    }
+  enum Language: String, CaseIterable {
+    case system
+    case english = "en"
+    case simplifiedChinese = "zh-Hans"
+  }
 
-    static let languagePreferenceKey = "batchprinter.language"
+  static let languagePreferenceKey = "batchprinter.language"
 
-    static var selectedLanguage: Language {
-        guard let raw = UserDefaults.standard.string(forKey: languagePreferenceKey),
-              let language = Language(rawValue: raw) else {
-            return .system
-        }
-        return language
+  static var selectedLanguage: Language {
+    guard let raw = UserDefaults.standard.string(forKey: languagePreferenceKey),
+      let language = Language(rawValue: raw)
+    else {
+      return .system
     }
+    return language
+  }
 
-    static var locale: Locale {
-        switch selectedLanguage {
-        case .system:
-            return .autoupdatingCurrent
-        case .english:
-            return Locale(identifier: Language.english.rawValue)
-        case .simplifiedChinese:
-            return Locale(identifier: Language.simplifiedChinese.rawValue)
-        }
+  static var locale: Locale {
+    switch selectedLanguage {
+    case .system:
+      return .autoupdatingCurrent
+    case .english:
+      return Locale(identifier: Language.english.rawValue)
+    case .simplifiedChinese:
+      return Locale(identifier: Language.simplifiedChinese.rawValue)
     }
+  }
 
-    static func locale(for rawValue: String) -> Locale {
-        guard let language = Language(rawValue: rawValue) else {
-            return .autoupdatingCurrent
-        }
-        switch language {
-        case .system:
-            return .autoupdatingCurrent
-        case .english:
-            return Locale(identifier: Language.english.rawValue)
-        case .simplifiedChinese:
-            return Locale(identifier: Language.simplifiedChinese.rawValue)
-        }
+  static func locale(for rawValue: String) -> Locale {
+    guard let language = Language(rawValue: rawValue) else {
+      return .autoupdatingCurrent
     }
+    switch language {
+    case .system:
+      return .autoupdatingCurrent
+    case .english:
+      return Locale(identifier: Language.english.rawValue)
+    case .simplifiedChinese:
+      return Locale(identifier: Language.simplifiedChinese.rawValue)
+    }
+  }
 
-    static func tr(_ key: String) -> String {
-        localizedString(for: key, languageRawValue: selectedLanguage.rawValue)
-    }
+  static func tr(_ key: String) -> String {
+    localizedString(for: key, languageRawValue: selectedLanguage.rawValue)
+  }
 
-    static func tr(_ key: String, _ args: CVarArg...) -> String {
-        String(format: tr(key), locale: locale, arguments: args)
-    }
+  static func tr(_ key: String, _ args: CVarArg...) -> String {
+    String(format: tr(key), locale: locale, arguments: args)
+  }
 
-    static func tr(_ key: String, languageRawValue: String) -> String {
-        let value = localizedString(for: key, languageRawValue: languageRawValue)
-        return value == key ? tr(key) : value
-    }
+  static func tr(_ key: String, languageRawValue: String) -> String {
+    let value = localizedString(for: key, languageRawValue: languageRawValue)
+    return value == key ? tr(key) : value
+  }
 
-    static func tr(_ key: String, languageRawValue: String, _ args: CVarArg...) -> String {
-        String(format: tr(key, languageRawValue: languageRawValue), locale: locale(for: languageRawValue), arguments: args)
-    }
+  static func tr(_ key: String, languageRawValue: String, _ args: CVarArg...) -> String {
+    String(
+      format: tr(key, languageRawValue: languageRawValue), locale: locale(for: languageRawValue),
+      arguments: args)
+  }
 
-    private static func localizedString(for key: String, languageRawValue: String) -> String {
-        let bundle = localizationBundle(for: languageRawValue)
-        return bundle.localizedString(forKey: key, value: key, table: nil)
-    }
+  private static func localizedString(for key: String, languageRawValue: String) -> String {
+    let bundle = localizationBundle(for: languageRawValue)
+    return bundle.localizedString(forKey: key, value: key, table: nil)
+  }
 
-    private static func localizationBundle(for languageRawValue: String) -> Bundle {
-        guard let language = Language(rawValue: languageRawValue), language != .system else {
-            return .main
-        }
-        guard let path = Bundle.main.path(forResource: language.rawValue, ofType: "lproj"),
-              let bundle = Bundle(path: path) else {
-            return .main
-        }
-        return bundle
+  private static func localizationBundle(for languageRawValue: String) -> Bundle {
+    guard let language = Language(rawValue: languageRawValue), language != .system else {
+      return .main
     }
+    guard let path = Bundle.main.path(forResource: language.rawValue, ofType: "lproj"),
+      let bundle = Bundle(path: path)
+    else {
+      return .main
+    }
+    return bundle
+  }
 }
