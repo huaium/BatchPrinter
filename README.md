@@ -47,7 +47,7 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 
 ## Requirements
 
-- macOS 13+
+- macOS 14.0+
 - Xcode 16+ (Swift 6 language mode)
 - Microsoft Word for Mac installed (for Word automation/Word source printing)
 
