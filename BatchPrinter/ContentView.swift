@@ -64,7 +64,7 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 header
                 controls
                 tableSection(minHeight: 140)
@@ -72,7 +72,9 @@ struct ContentView: View {
                 printControls
                 logSection(minHeight: 90, maxHeight: min(160, geometry.size.height * 0.2))
             }
-            .padding(20)
+            .padding(24)
+            .font(.system(size: 16))
+            .controlSize(.large)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .alert(
@@ -113,9 +115,9 @@ struct ContentView: View {
                     viewModel.selectedFolderURL?.lastPathComponent
                         ?? localized("ui.choose_folder_title")
                 )
-                .font(.title2.weight(.semibold))
+                .font(.system(size: 25, weight: .semibold))
                 Text(viewModel.selectedFolderURL?.path ?? localized("ui.choose_folder_hint"))
-                    .font(.subheadline)
+                    .font(.system(size: 15))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -158,76 +160,57 @@ struct ContentView: View {
             .glassCard(cornerRadius: innerCornerRadius)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("ui.options")
-                    .font(.headline)
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        HStack(spacing: 6) {
-                            Button {
-                                showPreprocessOutputChoice = true
-                            } label: {
-                                Text(preprocessButtonTitle)
-                            }
-                            .disabled(
-                                viewModel.jobs.isEmpty || viewModel.isPrinting
-                                    || viewModel.isPreprocessing)
+                Text("ui.options").font(.system(size: 18, weight: .semibold))
+                Text("ui.preprocess_hint")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 16) {
+                    HStack(spacing: 6) {
+                        Button {
+                            showPreprocessOutputChoice = true
+                        } label: {
+                            Text(preprocessButtonTitle)
+                        }
+                        .disabled(
+                            viewModel.jobs.isEmpty || viewModel.isPrinting
+                                || viewModel.isPreprocessing)
 
-                            Button {
-                                showPreprocessInfo = true
-                            } label: {
-                                Image(systemName: "info.circle")
+                        Button {
+                            showPreprocessInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("controls.preprocess.help")
+                        .popover(isPresented: $showPreprocessInfo, arrowEdge: .bottom) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("preprocess.info.title")
+                                    .font(.system(size: 18, weight: .semibold))
+                                Text("preprocess.info.line1")
+                                Text("preprocess.info.line2")
+                                Text("preprocess.info.line3")
+                                Text("preprocess.info.line4")
                                     .foregroundStyle(.secondary)
                             }
-                            .buttonStyle(.plain)
-                            .help("controls.preprocess.help")
-                            .popover(isPresented: $showPreprocessInfo, arrowEdge: .bottom) {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("preprocess.info.title")
-                                        .font(.headline)
-                                    Text("preprocess.info.line1")
-                                    Text("preprocess.info.line2")
-                                    Text("preprocess.info.line3")
-                                    Text("preprocess.info.line4")
-                                        .foregroundStyle(.secondary)
-                                }
-                                .padding(14)
-                                .frame(width: 360)
-                            }
+                            .padding(14)
+                            .frame(width: 360)
                         }
-                        Spacer()
-
                     }
-                    HStack {
-                        Text("controls.preprocess_folder")
-                        Text(
-                            viewModel.preprocessOutputFolderURL?.path
-                                ?? localized("controls.not_selected")
-                        )
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
+                    if let folder = viewModel.preprocessOutputFolderURL {
+                        Label(folder.lastPathComponent, systemImage: "folder")
+                            .font(.system(size: 15))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(folder.path)
+                    } else {
+                        Text("ui.choose_output_hint")
+                            .font(.system(size: 15))
+                            .foregroundStyle(.secondary)
                     }
-                    .font(.caption)
-                    HStack {
-                        Button("controls.page_range") { showPageRangeInfo = true }
-                            .buttonStyle(.link)
-                            .popover(isPresented: $showPageRangeInfo) {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("page_range.info.title").font(.headline)
-                                    Text("page_range.info.line1")
-                                    Text("page_range.info.line2")
-                                    Text("page_range.info.line3")
-                                    Text("page_range.info.line4")
-                                    Text("page_range.info.line5").foregroundStyle(.secondary)
-                                }
-                                .padding(14)
-                                .frame(width: 320)
-                            }
-                        Spacer()
-                    }
+                    Spacer()
                 }
-                .padding(.top, 10)
             }
             .padding(14)
             .glassCard(cornerRadius: innerCornerRadius)
@@ -236,25 +219,28 @@ struct ContentView: View {
 
     private var printControls: some View {
         HStack(spacing: 12) {
-            Text("controls.printer")
-            Picker("controls.printer", selection: $viewModel.selectedPrinterName) {
-                if viewModel.availablePrinters.isEmpty {
-                    Text("controls.no_printer").tag("")
-                } else {
-                    ForEach(viewModel.availablePrinters, id: \.self) { printer in
-                        if printer == WordPrinter.virtualPDFPrinterName {
-                            Text(localized("printer.virtual_pdf")).tag(printer)
-                        } else {
-                            Text(printer).tag(printer)
+            HStack(spacing: 8) {
+                Text("controls.printer")
+                Picker("controls.printer", selection: $viewModel.selectedPrinterName) {
+                    if viewModel.availablePrinters.isEmpty {
+                        Text("controls.no_printer").tag("")
+                    } else {
+                        ForEach(viewModel.availablePrinters, id: \.self) { printer in
+                            if printer == WordPrinter.virtualPDFPrinterName {
+                                Text(localized("printer.virtual_pdf")).tag(printer)
+                            } else {
+                                Text(printer).tag(printer)
+                            }
                         }
                     }
                 }
-            }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .frame(width: 280)
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .fixedSize()
 
-            Button("controls.refresh_printers") { viewModel.refreshPrinters() }
+                Button("controls.refresh_printers") { viewModel.refreshPrinters() }
+            }
+            .fixedSize(horizontal: true, vertical: false)
 
             Spacer()
             if viewModel.isPrinting || viewModel.isPreprocessing {
@@ -275,7 +261,22 @@ struct ContentView: View {
     private func tableSection(minHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("table.title").font(.headline)
+                Text("table.title").font(.system(size: 18, weight: .semibold))
+                Button("controls.page_range") { showPageRangeInfo = true }
+                    .buttonStyle(.link)
+                    .popover(isPresented: $showPageRangeInfo) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("page_range.info.title").font(.system(size: 18, weight: .semibold))
+                            Text("page_range.info.line1")
+                            Text("page_range.info.line2")
+                            Text("page_range.info.line3")
+                            Text("page_range.info.line4")
+                            Text("page_range.info.line5").foregroundStyle(.secondary)
+                        }
+                        .padding(14)
+                        .frame(width: 320)
+                    }
+
                 if let job = viewModel.jobs.first(where: {
                     viewModel.selectedJobIDs.contains($0.id)
                 }) {
@@ -287,13 +288,13 @@ struct ContentView: View {
                         }
                 }
                 Spacer()
-                Text(summaryText).font(.caption).foregroundStyle(.secondary)
+                Text(summaryText).font(.system(size: 13)).foregroundStyle(.secondary)
             }
 
             if viewModel.jobs.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "doc.on.doc").font(.largeTitle).foregroundStyle(.secondary)
-                    Text("ui.empty_title").font(.headline)
+                    Text("ui.empty_title").font(.system(size: 18, weight: .semibold))
                     Text("ui.empty_hint").foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
@@ -306,28 +307,29 @@ struct ContentView: View {
                             Text(job.fileName)
                                 .lineLimit(1)
                             Text(job.directoryName)
-                                .font(.caption)
+                                .font(.system(size: 13))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
+                        .padding(.vertical, 4)
                     }
-                    .width(min: 280)
+                    .width(min: 320)
 
                     TableColumn("table.status") { job in
                         Text(job.status.localizedLabel)
-                            .font(.caption.weight(.semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(statusColor(for: job.status).opacity(0.2), in: Capsule())
                     }
-                    .width(106)
+                    .width(126)
 
                     TableColumn("table.pages") { job in
                         TextField("table.all_pages", text: viewModel.pageRangeBinding(for: job.id))
                             .textFieldStyle(.roundedBorder)
                             .disabled(viewModel.isPrinting)
                     }
-                    .width(120)
+                    .width(144)
 
                     TableColumn("table.copies") { job in
                         Stepper(value: viewModel.copiesBinding(for: job.id), in: 1...99) {
@@ -336,7 +338,7 @@ struct ContentView: View {
                         }
                         .disabled(viewModel.isPrinting)
                     }
-                    .width(90)
+                    .width(110)
 
                 }
                 .contextMenu(forSelectionType: UUID.self) { selection in
@@ -364,7 +366,7 @@ struct ContentView: View {
 
     private func fileDetails(_ job: PrintJob) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("ui.file_details").font(.headline)
+            Text("ui.file_details").font(.system(size: 18, weight: .semibold))
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
                 GridRow {
                     Text("table.file")
@@ -399,7 +401,7 @@ struct ContentView: View {
                     Button("table.reveal_in_finder") { viewModel.revealInFinder(job: job) }
                 }
             }
-            .font(.subheadline)
+            .font(.system(size: 15))
             .padding(.top, 8)
         }
     }
@@ -407,7 +409,7 @@ struct ContentView: View {
     private func logSection(minHeight: CGFloat, maxHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("logs.title").font(.headline)
+                Text("logs.title").font(.system(size: 18, weight: .semibold))
                 Spacer()
                 Toggle("controls.show_only_failures", isOn: $viewModel.showOnlyFailures)
                     .toggleStyle(.checkbox)
@@ -425,7 +427,7 @@ struct ContentView: View {
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(size: 14, design: .monospaced))
                 .padding(12)
             }
             .frame(minHeight: minHeight, maxHeight: maxHeight)

@@ -341,6 +341,7 @@
       }
     },
     "controls.preprocess_folder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2396,6 +2397,22 @@
         }
       }
     },
+    "ui.choose_output_hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose output when preparing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备时选择输出位置"
+          }
+        }
+      }
+    },
     "ui.empty_hint" : {
       "localizations" : {
         "en" : {
@@ -2473,6 +2490,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "预处理"
+          }
+        }
+      }
+    },
+    "ui.preprocess_hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepare Word files as PDFs before printing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打印前将 Word 文件转换为 PDF。"
           }
         }
       }

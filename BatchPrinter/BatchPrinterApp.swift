@@ -10,9 +10,10 @@ struct BatchPrinterApp: App {
             ContentView()
                 .environmentObject(viewModel)
                 .environment(\.locale, L10n.locale(for: selectedLanguage))
-                .frame(minWidth: 960, minHeight: 820)
+                .frame(minWidth: 1120, minHeight: 840)
         }
-        .defaultSize(width: 1080, height: 880)
+        .defaultSize(width: 1200, height: 900)
+        .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
 
         Window(L10n.tr("help.menu.title"), id: HelpView.windowID) {
