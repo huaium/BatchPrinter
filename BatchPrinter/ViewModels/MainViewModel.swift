@@ -338,7 +338,8 @@ final class MainViewModel: ObservableObject {
             lastErrorMessage = L10n.tr("error.no_printer_selected")
             return
         }
-        let exportAsPDF = selectedPrinterName == WordPrinter.virtualPDFPrinterName
+        let selectedPrinter = selectedPrinterName
+        let exportAsPDF = selectedPrinter == WordPrinter.virtualPDFPrinterName
 
         let targetIDs = selectedJobIDs.isEmpty ? Set(jobs.map(\.id)) : selectedJobIDs
         guard !targetIDs.isEmpty else {
@@ -397,9 +398,9 @@ final class MainViewModel: ObservableObject {
         shouldCancel = false
         isCancelling = false
         isPrinting = true
-        let selectedPrinterLabel = selectedPrinterName == WordPrinter.virtualPDFPrinterName
+        let selectedPrinterLabel = exportAsPDF
             ? L10n.tr("printer.virtual_pdf")
-            : selectedPrinterName
+            : selectedPrinter
         logStore.add(L10n.tr("log.using_printer", selectedPrinterLabel))
         logStore.add(L10n.tr("log.starting_print_run", targetIDs.count))
 
@@ -437,7 +438,6 @@ final class MainViewModel: ObservableObject {
                     let fileURL = jobs[index].fileURL
                     let pageRange = try printer.parsePageRange(from: jobs[index].pageRange)
                     let copies = max(1, jobs[index].copies)
-                    let selectedPrinter = selectedPrinterName
                     let pdfOutputFolder = printPDFOutputFolderURL
                     let result = try await Task.detached(priority: .userInitiated) { [printer] in
                         if hasPreprocessedPDF, let preprocessedPDFURL {

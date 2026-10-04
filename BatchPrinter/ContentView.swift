@@ -237,8 +237,10 @@ struct ContentView: View {
                 .pickerStyle(.menu)
                 .labelsHidden()
                 .fixedSize()
+                .disabled(viewModel.isPrinting)
 
                 Button("controls.refresh_printers") { viewModel.refreshPrinters() }
+                    .disabled(viewModel.isPrinting)
             }
             .fixedSize(horizontal: true, vertical: false)
 
