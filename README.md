@@ -1,6 +1,8 @@
 # BatchPrinter
 
-<img src="docs/screenshot.png" alt="BatchPrinter screenshot" width="700">
+<p align="center">
+  <img src="docs/screenshot.png" alt="BatchPrinter screenshot" width="500">
+</p>
 
 A native macOS app for batch printing Word and PDF files, with PDF preparation,
 Quick Look preview, and per-file page ranges and copy counts.
