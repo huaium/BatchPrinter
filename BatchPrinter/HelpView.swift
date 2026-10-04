@@ -56,7 +56,7 @@ struct HelpView: View {
                 updateWindowTitle()
             }
         )
-        .onChange(of: selectedLanguage) { _ in
+        .onChange(of: selectedLanguage) {
             updateWindowTitle()
         }
     }
