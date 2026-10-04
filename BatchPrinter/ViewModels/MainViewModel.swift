@@ -551,7 +551,7 @@ final class MainViewModel: ObservableObject {
         NSWorkspace.shared.activateFileViewerSelecting([job.fileURL])
     }
 
-    nonisolated private static func nextPDFOutputURL(for sourceURL: URL, in outputFolder: URL?) -> URL {
+    nonisolated static func nextPDFOutputURL(for sourceURL: URL, in outputFolder: URL?) -> URL {
         let baseName = sourceURL.deletingPathExtension().lastPathComponent
         let directory = outputFolder ?? sourceURL.deletingLastPathComponent()
         let initialURL = directory.appendingPathComponent(baseName).appendingPathExtension("pdf")
@@ -572,7 +572,7 @@ final class MainViewModel: ObservableObject {
         }
     }
 
-    nonisolated private static func nextPreprocessedPDFURL(for sourceURL: URL, in outputFolder: URL) -> URL {
+    nonisolated static func nextPreprocessedPDFURL(for sourceURL: URL, in outputFolder: URL) -> URL {
         let baseName = sourceURL.deletingPathExtension().lastPathComponent
         let initialURL = outputFolder.appendingPathComponent(baseName).appendingPathExtension("pdf")
 

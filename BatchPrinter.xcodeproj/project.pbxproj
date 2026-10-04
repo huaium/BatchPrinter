@@ -17,6 +17,13 @@
 		A008 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B008 /* L10n.swift */; };
 		A009 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B011 /* Localizable.xcstrings */; };
 		A010 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012 /* HelpView.swift */; };
+		AA0000000000000000000001 = {isa = PBXBuildFile; fileRef = B003; };
+		AA0000000000000000000002 = {isa = PBXBuildFile; fileRef = B004; };
+		AA0000000000000000000003 = {isa = PBXBuildFile; fileRef = B005; };
+		AA0000000000000000000004 = {isa = PBXBuildFile; fileRef = B006; };
+		AA0000000000000000000005 = {isa = PBXBuildFile; fileRef = B007; };
+		AA0000000000000000000006 = {isa = PBXBuildFile; fileRef = B008; };
+		AA0000000000000000000007 = {isa = PBXBuildFile; fileRef = AA0000000000000000000014; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +38,8 @@
 		B008 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		B011 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B012 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000014 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchPrinterTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000015 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BatchPrinterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +50,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000029 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -48,6 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				D001 /* BatchPrinter */,
+				AA000000000000000000001E /* BatchPrinterTests */,
 				D010 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,10 +116,12 @@
 			isa = PBXGroup;
 			children = (
 				B000 /* BatchPrinter.app */,
+				AA0000000000000000000015 /* BatchPrinterTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		AA000000000000000000001E = {isa = PBXGroup; children = (AA0000000000000000000014,); path = BatchPrinterTests; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -129,6 +142,7 @@
 			productReference = B000 /* BatchPrinter.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA0000000000000000000032 = {isa = PBXNativeTarget; buildConfigurationList = AA000000000000000000003C; buildPhases = (AA0000000000000000000028, AA0000000000000000000029, AA000000000000000000002A,); buildRules = (); dependencies = (); name = BatchPrinterTests; productName = BatchPrinterTests; productReference = AA0000000000000000000015; productType = "com.apple.product-type.bundle.unit-test"; };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -159,6 +173,7 @@
 			projectRoot = "";
 			targets = (
 				E000 /* BatchPrinter */,
+				AA0000000000000000000032 /* BatchPrinterTests */,
 			);
 		};
 /* End PBXProject section */
@@ -172,6 +187,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA000000000000000000002A = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -191,6 +207,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000028 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000000000000000000001, AA0000000000000000000002, AA0000000000000000000003, AA0000000000000000000004, AA0000000000000000000005, AA0000000000000000000006, AA0000000000000000000007,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -351,6 +368,26 @@
 			};
 			name = Release;
 		};
+		AA000000000000000000003D = {isa = XCBuildConfiguration; buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                GENERATE_INFOPLIST_FILE = YES;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../Frameworks", "@executable_path/../Frameworks",);
+                MACOSX_DEPLOYMENT_TARGET = 14.0;
+                PRODUCT_BUNDLE_IDENTIFIER = com.example.BatchPrinterTests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SWIFT_EMIT_LOC_STRINGS = NO;
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+            }; name = Debug; };
+		AA000000000000000000003E = {isa = XCBuildConfiguration; buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                GENERATE_INFOPLIST_FILE = YES;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../Frameworks", "@executable_path/../Frameworks",);
+                MACOSX_DEPLOYMENT_TARGET = 14.0;
+                PRODUCT_BUNDLE_IDENTIFIER = com.example.BatchPrinterTests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SWIFT_EMIT_LOC_STRINGS = NO;
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+            }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -372,6 +409,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		AA000000000000000000003C = {isa = XCConfigurationList; buildConfigurations = (AA000000000000000000003D, AA000000000000000000003E,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = F000 /* Project object */;

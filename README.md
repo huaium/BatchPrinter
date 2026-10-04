@@ -58,6 +58,19 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 3. Build and run.
 4. Allow Automation permission when prompted for Microsoft Word.
 
+## Tests
+
+Select the shared `BatchPrinter` scheme in Xcode and press **Command-U**, or run:
+
+```sh
+xcodebuild test -project BatchPrinter.xcodeproj -scheme BatchPrinter -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
+```
+
+The `BatchPrinterTests` target compiles the production model and service sources
+without launching the app. Tests generate PDFs in isolated temporary folders and
+cover page selection, duplicate output filenames, preparation cancellation, and
+failure recovery. They do not automate Word or submit print jobs.
+
 ## Behavior Notes
 
 - Printing is silent (no print dialog).
