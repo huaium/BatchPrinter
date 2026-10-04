@@ -288,6 +288,8 @@ struct ContentView: View {
                         }
                 }
                 Spacer()
+                Toggle("controls.show_only_failures", isOn: $viewModel.showOnlyFailures)
+                    .toggleStyle(.checkbox)
                 Text(summaryText).font(.system(size: 13)).foregroundStyle(.secondary)
             }
 
@@ -411,9 +413,6 @@ struct ContentView: View {
             HStack {
                 Text("logs.title").font(.system(size: 18, weight: .semibold))
                 Spacer()
-                Toggle("controls.show_only_failures", isOn: $viewModel.showOnlyFailures)
-                    .toggleStyle(.checkbox)
-
                 Button("controls.copy_logs") { viewModel.copyLogsToPasteboard() }
                     .disabled(viewModel.logStore.lines.isEmpty)
                 Button("controls.clear_logs") { viewModel.clearLogs() }
