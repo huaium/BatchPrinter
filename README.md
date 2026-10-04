@@ -6,7 +6,9 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 
 - Choose a folder containing printable files.
 - Automatically refresh file list right after selecting a folder.
-- Manual refresh via `Refresh Files`.
+- Manual refresh via `Refresh Files` preserves page ranges, copy counts, and selection
+  for files still present. New files use defaults; removed files leave the queue.
+  Preparation and submission information resets so edited files are prepared again.
 - Optional recursive scan via `Scan subfolders`.
 - Logs whether subfolder scan is On/Off for each scan run.
 - Supports `.doc`, `.docx`, `.docm`, `.dot`, `.dotx`, `.dotm`, `.pdf`.

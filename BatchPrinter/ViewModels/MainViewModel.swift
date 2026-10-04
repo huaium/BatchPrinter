@@ -106,7 +106,20 @@ final class MainViewModel: ObservableObject {
 
         do {
             let urls = try scanner.scan(folderURL: selectedFolderURL, recursive: recursiveScan)
-            jobs = urls.map { PrintJob(fileURL: $0) }
+            let existingJobs = Dictionary(jobs.map { ($0.fileURL.resolvingSymlinksInPath().standardizedFileURL, $0) },
+                                          uniquingKeysWith: { first, _ in first })
+            jobs = urls.map { url in
+                var job = existingJobs[url.resolvingSymlinksInPath().standardizedFileURL] ?? PrintJob(fileURL: url)
+                // Keep user settings and row identity, but refresh derived information:
+                // the source document may have changed since its last preparation.
+                job.preprocessedPDFURL = nil
+                job.totalPages = nil
+                job.status = .pending
+                job.message = ""
+                job.completedAt = nil
+                job.printJobID = nil
+                return job
+            }
             for index in jobs.indices {
                 guard jobs[index].isPDFSource else { continue }
                 jobs[index].preprocessedPDFURL = jobs[index].fileURL
@@ -114,7 +127,7 @@ final class MainViewModel: ObservableObject {
                     jobs[index].totalPages = pageCount
                 }
             }
-            selectedJobIDs.removeAll()
+            selectedJobIDs.formIntersection(Set(jobs.map(\.id)))
             logStore.add(L10n.tr("log.scanned_printable_docs", urls.count))
             if urls.isEmpty {
                 logStore.add(L10n.tr("log.no_matching_files"))

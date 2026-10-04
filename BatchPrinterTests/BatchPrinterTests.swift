@@ -166,10 +166,90 @@ final class PreparationTests: XCTestCase {
     }
 }
 
+final class RefreshTests: XCTestCase {
+    @MainActor
+    func testRefreshPreservesSettingsAndSelectionWhileAddingAndRemovingFiles() throws {
+        try withTemporaryFolder { folder in
+            let retained = folder.appendingPathComponent("retained.pdf")
+            let removed = folder.appendingPathComponent("removed.pdf")
+            let added = folder.appendingPathComponent("added.pdf")
+            try makePDF(at: retained, pages: 2)
+            try makePDF(at: removed, pages: 1)
+            let model = MainViewModel()
+            model.selectedFolderURL = folder
+            model.scanFiles()
+            XCTAssertEqual(model.jobs.count, 2, "Folder: \(folder.path), error: \(model.lastErrorMessage ?? "none"), jobs: \(model.jobs.map { $0.fileURL.path })")
+            let retainedIndex = try XCTUnwrap(model.jobs.firstIndex { $0.fileURL.resolvingSymlinksInPath().path == retained.path })
+            let removedJob = try XCTUnwrap(model.jobs.first { $0.fileURL.resolvingSymlinksInPath().path == removed.path })
+            model.jobs[retainedIndex].pageRange = "2,1"
+            model.jobs[retainedIndex].copies = 3
+            model.jobs[retainedIndex].status = .submitted
+            model.jobs[retainedIndex].message = "Previous submission"
+            model.jobs[retainedIndex].completedAt = Date()
+            model.jobs[retainedIndex].printJobID = "printer-123"
+            let retainedID = model.jobs[retainedIndex].id
+            model.selectedJobIDs = [retainedID, removedJob.id]
+            try FileManager.default.removeItem(at: removed)
+            try makePDF(at: retained, pages: 4)
+            try makePDF(at: added, pages: 1)
+
+            model.scanFiles()
+
+            let job = try XCTUnwrap(model.jobs.first { $0.fileURL.resolvingSymlinksInPath().path == retained.path })
+            XCTAssertEqual(job.id, retainedID)
+            XCTAssertEqual(job.pageRange, "2,1")
+            XCTAssertEqual(job.copies, 3)
+            XCTAssertEqual(job.totalPages, 4)
+            XCTAssertEqual(job.status, .pending)
+            XCTAssertTrue(job.message.isEmpty)
+            XCTAssertNil(job.completedAt)
+            XCTAssertNil(job.printJobID)
+            XCTAssertEqual(model.selectedJobIDs, [retainedID])
+            XCTAssertFalse(model.jobs.contains { $0.fileURL.resolvingSymlinksInPath().path == removed.path })
+            let newJob = try XCTUnwrap(model.jobs.first { $0.fileURL.resolvingSymlinksInPath().path == added.path })
+            XCTAssertEqual(newJob.pageRange, "")
+            XCTAssertEqual(newJob.copies, 1)
+        }
+    }
+
+    @MainActor
+    func testRefreshMatchesFullPathsForDuplicateNamesAndRecursiveScan() throws {
+        try withTemporaryFolder { folder in
+            let nested = folder.appendingPathComponent("nested")
+            try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+            let rootFile = folder.appendingPathComponent("Report.docx")
+            let nestedFile = nested.appendingPathComponent("Report.docx")
+            try Data().write(to: rootFile)
+            try Data().write(to: nestedFile)
+            let model = MainViewModel()
+            model.selectedFolderURL = folder
+            model.recursiveScan = true
+            model.scanFiles()
+            XCTAssertEqual(model.jobs.count, 2, "Folder: \(folder.path), error: \(model.lastErrorMessage ?? "none"), jobs: \(model.jobs.map { $0.fileURL.path })")
+            for index in model.jobs.indices {
+                model.jobs[index].pageRange = model.jobs[index].fileURL.resolvingSymlinksInPath().path == rootFile.path ? "1" : "2-3"
+                model.jobs[index].copies = model.jobs[index].fileURL.resolvingSymlinksInPath().path == rootFile.path ? 2 : 5
+            }
+            model.scanFiles()
+            let rootJob = try XCTUnwrap(model.jobs.first { $0.fileURL.resolvingSymlinksInPath().path == rootFile.path })
+            let nestedJob = try XCTUnwrap(model.jobs.first { $0.fileURL.resolvingSymlinksInPath().path == nestedFile.path })
+            XCTAssertEqual(rootJob.pageRange, "1")
+            XCTAssertEqual(rootJob.copies, 2)
+            XCTAssertEqual(nestedJob.pageRange, "2-3")
+            XCTAssertEqual(nestedJob.copies, 5)
+            model.recursiveScan = false
+            model.scanFiles()
+            XCTAssertEqual(model.jobs.count, 1)
+            XCTAssertEqual(model.jobs.first?.id, rootJob.id)
+            XCTAssertEqual(model.jobs.first?.copies, 2)
+        }
+    }
+}
+
 private func temporaryFolder() throws -> URL {
     let folder = FileManager.default.temporaryDirectory.appendingPathComponent("BatchPrinterTests-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    return folder
+    return folder.resolvingSymlinksInPath()
 }
 
 private func withTemporaryFolder(_ body: (URL) throws -> Void) throws {
