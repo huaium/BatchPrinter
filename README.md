@@ -1,101 +1,54 @@
 # BatchPrinter
 
-A native macOS app for scanning, preprocessing, and batch printing local Word and PDF files.
+<img src="docs/screenshot.png" alt="BatchPrinter screenshot" width="700">
 
-## Features
-
-- Choose a folder containing printable files.
-- Automatically refresh file list right after selecting a folder.
-- Manual refresh via `Refresh Files` preserves page ranges, copy counts, and selection
-  for files still present. New files use defaults; removed files leave the queue.
-  Preparation and submission information resets so edited files are prepared again.
-- Optional recursive scan via `Scan subfolders`.
-- Logs whether subfolder scan is On/Off for each scan run.
-- Supports `.doc`, `.docx`, `.docm`, `.dot`, `.dotx`, `.dotm`, `.pdf`.
-- Skips hidden files and Word lock/temp files (`~$...`).
-- Queue management with per-file status, selection, and logs.
-- Preparation shows Preparing, Ready, Failed, or Cancelled for each file; error
-  details are available in File Details. Show only failures filters the queue.
-- Select a queue item and click `Preview` to open the native Quick Look preview.
-  Prepared PDFs take priority; otherwise the original document is previewed.
-- `Retry Failed` retries only failed jobs, retaining page ranges and copy counts.
-  If any failed job needs preparation, the failed jobs are prepared and selected
-  for `Print Selected` afterward. Otherwise, printing/export is retried directly.
-- Queue sorting by clicking the `File` table header (ascending/descending).
-- Preprocess flow asks output destination each run:
-  - system temporary folder
-  - user-selected folder
-- Page range support:
-  - single page: `3`
-  - range: `2-6`
-  - comma-separated explicit pages: `1,2,5` or `4, 2, 1`
-  - whitespace is ignored
-- For explicit page lists, print order is preserved exactly as entered.
-- Cancel support during printing and preparation (cooperative between files;
-  the current file finishes and remaining files are cancelled).
-
-## How Printing Works
-
-- Word documents are automated through Microsoft Word via AppleScript to preserve Word rendering fidelity.
-- PDF inputs can be printed directly or used in preprocess/output flows.
-- `Print to PDF` output mode is supported.
-
-## Project Structure
-
-- `BatchPrinter.xcodeproj` — Xcode project.
-- `BatchPrinter/` — app source code.
-  - `BatchPrinterApp.swift`
-  - `ContentView.swift`
-  - `Models/PrintJob.swift`
-  - `Services/FileScanner.swift`
-  - `Services/WordPrinter.swift`
-  - `ViewModels/MainViewModel.swift`
-  - `Utilities/LogStore.swift`
+A native macOS app for batch printing Word and PDF files, with PDF preparation,
+Quick Look preview, and per-file page ranges and copy counts.
 
 ## Requirements
 
 - macOS 14.0+
-- Xcode 16+ (Swift 6 language mode)
-- Microsoft Word for Mac installed (for Word automation/Word source printing)
+- Xcode 16+ (Swift 6)
+- Microsoft Word for Mac to process Word documents
 
-## Run
+## Get Started
 
-1. Open `BatchPrinter.xcodeproj` in Xcode.
-2. Configure signing team if prompted.
-3. Build and run.
-4. Allow Automation permission when prompted for Microsoft Word.
+1. Open `BatchPrinter.xcodeproj` in Xcode, select the `BatchPrinter` scheme,
+   configure signing if needed, and run.
+2. Choose a folder; enable **Scan subfolders** if needed.
+3. Prepare Word documents as PDFs, allowing Automation access to Word when prompted.
+4. Set page ranges and copies, choose a printer or **Print to PDF**, and print.
 
-## Tests
+Page ranges accept `3`, `2-6`, or `4,2,1`; entered order is preserved.
+Supported files: `.doc`, `.docx`, `.docm`, `.dot`, `.dotx`, `.dotm`, and `.pdf`.
 
-Select the shared `BatchPrinter` scheme in Xcode and press **Command-U**, or run:
+## Queue Controls
+
+- **Refresh Files** preserves page/copy settings and selection, but resets
+  preparation and submission information.
+- **Preview** shows the prepared PDF when available, otherwise the original file.
+- **Retry Failed** retries failed jobs only. Jobs needing preparation are prepared
+  and selected for **Print Selected** afterward.
+- **Cancel** takes effect between files; the current file finishes first.
+
+Close source documents in Word before preparation. Word dialogs can pause a batch.
+**Submitted** means the print system accepted the job; printer completion is not
+tracked. PDF exports show **Saved**.
+
+## Development
+
+```sh
+just          # List commands
+just format   # Format Swift files
+just lint     # Check formatting
+```
+
+Run tests with **Command-U** in Xcode or:
 
 ```sh
 xcodebuild test -project BatchPrinter.xcodeproj -scheme BatchPrinter -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
 ```
 
-The `BatchPrinterTests` target compiles the production model and service sources
-without launching the app. Tests generate PDFs in isolated temporary folders and
-cover page selection, duplicate output filenames, preparation cancellation, and
-failure recovery. They do not automate Word or submit print jobs.
-
-GitHub Actions runs the same Xcode tests on pushes and pull requests to `main`.
-The workflow can also be started manually and uploads the `.xcresult` test report.
-Signing is disabled; no signing credentials or Microsoft Word are required.
-
-## Behavior Notes
-
-- Printing is silent (no print dialog).
-- Submitted means the print system accepted the job, not that paper was printed.
-  CUPS job IDs appear in File Details when returned by `lp`. PDF exports show
-  Saved separately; printer completion tracking is not implemented.
-- Word may come to foreground while automated actions run.
-- Word source files already open in Word are skipped with an error; save and close
-  them before running BatchPrinter. Automation opens sources read-only and targets
-  the specific document, including cleanup after an export or print error.
-- If Word shows modal dialogs, queue progress can pause until dismissed.
-- During active print/preprocess runs, folder selection and scan refresh are blocked to avoid state corruption.
-
-## Known Constraints
-
-- Cancellation is best-effort and typically takes effect between files.
-- Temporary-folder cleanup is controlled by macOS when system temp output is selected.
+Tests cover page selection, filename collisions, cancellation, recovery, refresh,
+and preview selection without automating Word or submitting print jobs.
+GitHub Actions builds and tests pushes and pull requests to `main`.
