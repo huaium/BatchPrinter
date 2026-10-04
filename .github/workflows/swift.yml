@@ -36,7 +36,7 @@ jobs:
             -project BatchPrinter.xcodeproj \
             -scheme BatchPrinter \
             -configuration Debug \
-            -destination 'platform=macOS' \
+            -destination "platform=macOS,arch=$(uname -m)" \
             -derivedDataPath "$RUNNER_TEMP/BatchPrinterDerivedData" \
             -resultBundlePath "$RUNNER_TEMP/BatchPrinterTests.xcresult" \
             CODE_SIGNING_ALLOWED=NO
