@@ -248,8 +248,14 @@ struct ContentView: View {
             if viewModel.isPrinting || viewModel.isPreprocessing {
                 ProgressView().controlSize(.small)
             }
-            if viewModel.isPrinting {
-                Button(cancelButtonTitle) { viewModel.cancelPrinting() }
+            if viewModel.isPrinting || viewModel.isPreprocessing {
+                Button(cancelButtonTitle) {
+                    if viewModel.isPreprocessing {
+                        viewModel.cancelPreprocessing()
+                    } else {
+                        viewModel.cancelPrinting()
+                    }
+                }
                     .disabled(viewModel.isCancelling)
             }
             Button(printButtonTitle) { viewModel.startPrintingSelectedOrAll() }
@@ -449,9 +455,9 @@ struct ContentView: View {
         switch status {
         case .pending:
             return .gray
-        case .printing:
+        case .printing, .preparing:
             return .blue
-        case .success:
+        case .success, .ready:
             return .green
         case .failed:
             return .red

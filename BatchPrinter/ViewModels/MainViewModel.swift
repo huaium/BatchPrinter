@@ -29,6 +29,7 @@ final class MainViewModel: ObservableObject {
     private let scanner = FileScanner()
     private let printer = WordPrinter()
     private var printTask: Task<Void, Never>?
+    private var preprocessTask: Task<Void, Never>?
     private var shouldCancel = false
     private var cancellables = Set<AnyCancellable>()
 
@@ -220,22 +221,45 @@ final class MainViewModel: ObservableObject {
         }
 
         isPreprocessing = true
+        isCancelling = false
+        for index in jobs.indices {
+            jobs[index].status = .pending
+            jobs[index].message = ""
+            jobs[index].printedAt = nil
+        }
         logStore.add(L10n.tr("log.preprocessing_files", jobs.count))
 
-        Task { [weak self] in
+        preprocessTask = Task { [weak self] in
             guard let self else { return }
+            defer {
+                isPreprocessing = false
+                isCancelling = false
+                preprocessTask = nil
+                logStore.add(L10n.tr("log.preprocess_finished"))
+            }
             for index in jobs.indices {
-                if Task.isCancelled { break }
+                await Task.yield()
+                if Task.isCancelled {
+                    jobs[index].status = .cancelled
+                    jobs[index].message = L10n.tr("message.cancelled_before_preparing")
+                    continue
+                }
+                jobs[index].status = .preparing
+                jobs[index].message = L10n.tr("message.preparing_pdf")
                 let sourceURL = jobs[index].fileURL
                 if jobs[index].isPDFSource {
                     do {
                         let totalPages = try printer.pageCountForPDF(at: sourceURL)
                         jobs[index].preprocessedPDFURL = sourceURL
                         jobs[index].totalPages = totalPages
+                        jobs[index].status = .ready
+                        jobs[index].message = L10n.tr("message.pdf_ready")
                         logStore.add(L10n.tr("log.preprocess_skipped_pdf_source", sourceURL.lastPathComponent, totalPages))
                     } catch {
-                        jobs[index].preprocessedPDFURL = sourceURL
+                        jobs[index].preprocessedPDFURL = nil
                         jobs[index].totalPages = nil
+                        jobs[index].status = .failed
+                        jobs[index].message = error.localizedDescription
                         logStore.add(L10n.tr("log.page_count_unavailable_source_pdf", sourceURL.lastPathComponent))
                     }
                     continue
@@ -244,6 +268,8 @@ final class MainViewModel: ObservableObject {
                 guard let outputFolder else {
                     jobs[index].preprocessedPDFURL = nil
                     jobs[index].totalPages = nil
+                    jobs[index].status = .failed
+                    jobs[index].message = L10n.tr("error.select_preprocess_output_first")
                     logStore.add(L10n.tr("log.preprocess_missing_output_folder", sourceURL.lastPathComponent))
                     continue
                 }
@@ -261,6 +287,8 @@ final class MainViewModel: ObservableObject {
                     let totalPages = try printer.pageCountForPDF(at: outputURL)
                     jobs[index].preprocessedPDFURL = outputURL
                     jobs[index].totalPages = totalPages
+                    jobs[index].status = .ready
+                    jobs[index].message = L10n.tr("message.pdf_ready")
                     logStore.add(
                         L10n.tr(
                             "log.preprocessed_success",
@@ -272,11 +300,11 @@ final class MainViewModel: ObservableObject {
                 } catch {
                     jobs[index].preprocessedPDFURL = nil
                     jobs[index].totalPages = nil
+                    jobs[index].status = .failed
+                    jobs[index].message = error.localizedDescription
                     logStore.add(L10n.tr("log.preprocess_failed", sourceURL.lastPathComponent, error.localizedDescription))
                 }
             }
-            isPreprocessing = false
-            logStore.add(L10n.tr("log.preprocess_finished"))
         }
     }
 
@@ -419,7 +447,7 @@ final class MainViewModel: ObservableObject {
                 }
 
                 if Task.isCancelled || shouldCancel {
-                    if jobs[index].status == .pending || jobs[index].status == .printing {
+                    if jobs[index].status == .pending || jobs[index].status == .ready || jobs[index].status == .printing {
                         jobs[index].status = .cancelled
                         jobs[index].message = L10n.tr("message.cancelled_before_printing")
                     }
@@ -494,6 +522,13 @@ final class MainViewModel: ObservableObject {
         isCancelling = true
         printTask?.cancel()
         logStore.add(L10n.tr("log.cancellation_requested"))
+    }
+
+    func cancelPreprocessing() {
+        guard isPreprocessing, !isCancelling else { return }
+        isCancelling = true
+        preprocessTask?.cancel()
+        logStore.add(L10n.tr("log.preprocess_cancellation_requested"))
     }
 
     func copyLogsToPasteboard() {

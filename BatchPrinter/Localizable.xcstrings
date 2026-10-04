@@ -1167,6 +1167,23 @@
         }
       }
     },
+    "log.preprocess_cancellation_requested" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparation cancellation requested. The current file will finish; remaining files will be cancelled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已请求取消准备。当前文件将完成，其余文件将被取消。"
+          }
+        }
+      }
+    },
     "log.preprocess_failed" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1625,6 +1642,23 @@
         }
       }
     },
+    "message.cancelled_before_preparing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparation cancelled before this file started."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件开始准备前已取消。"
+          }
+        }
+      }
+    },
     "message.cancelled_before_printing" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1672,6 +1706,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在从预处理 PDF 生成输出..."
+          }
+        }
+      }
+    },
+    "message.pdf_ready" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF ready for printing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF 已准备好，可进行打印。"
+          }
+        }
+      }
+    },
+    "message.preparing_pdf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing PDF."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在准备 PDF。"
           }
         }
       }
@@ -2086,6 +2154,23 @@
         }
       }
     },
+    "status.preparing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备中"
+          }
+        }
+      }
+    },
     "status.printing" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2099,6 +2184,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打印中"
+          }
+        }
+      }
+    },
+    "status.ready" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已就绪"
           }
         }
       }

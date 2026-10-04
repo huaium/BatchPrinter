@@ -2,6 +2,8 @@ import Foundation
 
 enum PrintJobStatus: String, Codable, CaseIterable {
     case pending = "Pending"
+    case preparing = "Preparing"
+    case ready = "Ready"
     case printing = "Printing"
     case success = "Printed"
     case failed = "Failed"
@@ -12,6 +14,10 @@ enum PrintJobStatus: String, Codable, CaseIterable {
         switch self {
         case .pending:
             return L10n.tr("status.pending")
+        case .preparing:
+            return L10n.tr("status.preparing")
+        case .ready:
+            return L10n.tr("status.ready")
         case .printing:
             return L10n.tr("status.printing")
         case .success:

@@ -12,6 +12,8 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
 - Supports `.doc`, `.docx`, `.docm`, `.dot`, `.dotx`, `.dotm`, `.pdf`.
 - Skips hidden files and Word lock/temp files (`~$...`).
 - Queue management with per-file status, selection, and logs.
+- Preparation shows Preparing, Ready, Failed, or Cancelled for each file; error
+  details are available in File Details. Show only failures filters the queue.
 - Queue sorting by clicking the `File` table header (ascending/descending).
 - Preprocess flow asks output destination each run:
   - system temporary folder
@@ -22,7 +24,8 @@ A native macOS app for scanning, preprocessing, and batch printing local Word an
   - comma-separated explicit pages: `1,2,5` or `4, 2, 1`
   - whitespace is ignored
 - For explicit page lists, print order is preserved exactly as entered.
-- Cancel support during runs (cooperative between files).
+- Cancel support during printing and preparation (cooperative between files;
+  the current file finishes and remaining files are cancelled).
 
 ## How Printing Works
 
